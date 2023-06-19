@@ -1,13 +1,13 @@
-{{- if .Values.initJobs}}
+{{- if .Values.initJobs }}
   {{- range $initJobs, $job := $.Values.initJobs }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{$.Release.Name}}"
+  name: "{{ $.Release.Name }}"
   labels:
-    app.kubernetes.io/managed-by: {{$.Release.Service | quote }}
-    app.kubernetes.io/instance: {{$.Release.Name | quote }}
-    helm.sh/chart: "{{$.Chart.Name}}-{{$.Chart.Version}}"
+    app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
+    app.kubernetes.io/instance: {{ $.Release.Name | quote }}
+    helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
   annotations:
     # This is what defines this resource as a hook. Without this line, the
     # job is considered part of the release.
@@ -15,25 +15,26 @@ metadata:
 spec:
   template:
     metadata:
-      name: "{{$.Release.Name}}-migratation"
+      name: "{{$.Release.Name}}"
       labels:
-        app.kubernetes.io/managed-by: {{$.Release.Service | quote }}
+        app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
         app.kubernetes.io/instance: {{$.Release.Name | quote }}
-        helm.sh/chart: "{{$.Chart.Name}}-{{$.Chart.Version}}"
+        helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
     spec:
       restartPolicy: Never
       containers:
-        - name: {{ $job.name }}-migratation
-   {{- if $job.image}}
+        - name: {{ $job.name }}
+   {{- if $job.image }}
           image: {{ $job.image | quote }}
-    {{- else}}
+    {{- else }}
     {{- with index $.Values.containers 0 }}
           image: {{ .image | quote }}
     {{- end }}
-    {{- end}}
+    {{- end }}
           command: {{- toYaml $job.command | nindent 12 }}
           args: {{- toYaml $job.args | nindent 12 }}
           envFrom:
   {{- toYaml $job.envFrom | nindent 10 }}
+---
   {{- end }}
-  {{- end}}
+  {{- end }}
