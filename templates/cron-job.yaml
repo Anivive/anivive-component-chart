@@ -14,7 +14,7 @@ metadata:
     {{- toYaml $job.annotations | nindent 4 }}
 spec:
   schedule: {{ $job.schedule }}
-  jobTemplate: 
+  jobTemplate:
     spec:
       template:
         metadata:
@@ -27,7 +27,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: {{ $job.name }}
-      {{- if $job.image }}
+        {{- if $job.image }}
               image: {{ $job.image | quote }}
         {{- else }}
         {{- with index $.Values.containers 0 }}
