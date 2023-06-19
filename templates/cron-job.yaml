@@ -34,10 +34,10 @@ spec:
               image: {{ .image | quote }}
         {{- end }}
         {{- end }}
-              command: {{- toYaml $job.command | nindent 12 }}
-              args: {{- toYaml $job.args | nindent 12 }}
+              command: {{- toYaml $job.command | nindent 16 }}
+              args: {{- toYaml $job.args | nindent 16 }}
               envFrom:
-      {{- toYaml $job.envFrom | nindent 10 }}
+      {{- toYaml $job.envFrom | nindent 14 }}
 ---
       {{- end }}
       {{- end }}
