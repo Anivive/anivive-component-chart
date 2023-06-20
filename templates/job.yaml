@@ -15,7 +15,7 @@ metadata:
 spec:
   template:
     metadata:
-      name: "{{$.Release.Name}}"
+      name: "{{ $.Release.Name }}"
       labels:
         app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
         app.kubernetes.io/instance: {{$.Release.Name | quote }}
@@ -34,9 +34,9 @@ spec:
           command: {{- toYaml $job.command | nindent 12 }}
           args: {{- toYaml $job.args | nindent 12 }}
           env:
-  {{- toYaml $job.env | nindent 10 }}
+  {{- toYaml $job.env | nindent 12 }}
           envFrom:
-  {{- toYaml $job.envFrom | nindent 10 }}
+  {{- toYaml $job.envFrom | nindent 12 }}
 ---
   {{- end }}
   {{- end }}
