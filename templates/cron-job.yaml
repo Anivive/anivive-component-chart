@@ -40,6 +40,9 @@ spec:
       {{- toYaml $job.env | nindent 16 }}
               envFrom:
       {{- toYaml $job.envFrom | nindent 16 }}
+{{- if $job.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ $job.ttlSecondsAfterFinished }}
+{{- else }}
 ---
       {{- end }}
       {{- end }}
