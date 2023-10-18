@@ -131,6 +131,10 @@ spec:
   - hosts:
     {{- if $.Values.ingress.tlsHost}}
     - {{ $.Values.ingress.tlsHost | quote }}
+    {{- else if $.Values.ingress.tlsHosts}}
+    {{- range $tlsHostIndex, $tlsHost := $.Values.ingress.tlsHosts }}
+    - {{ $tlsHost | quote }}
+    {{- end}}
     {{- else}}
     {{- range $ingressRuleIndex, $ingressRule := $.Values.ingress.rules }}
     - {{ $ingressRule.host | quote }}
