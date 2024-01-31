@@ -4,7 +4,7 @@ apiVersion: apps/v1
 {{- $kind := "Deployment" }}
 {{- range $containerIndex, $container := $.Values.containers }}
   {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
-    {{- if $volumeMount.volume.readOnly }}
+    {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared }}
     {{- else }}
       {{- range $volumeIndex, $volume := $.Values.volumes }}
         {{- if not (or (hasKey $volume "secret") (hasKey $volume "configMap") (hasKey $volume "hostPath") (hasKey $volume "emptyDir") ) }}
