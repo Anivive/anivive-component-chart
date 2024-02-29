@@ -1,0 +1,10 @@
+name: Release to Production
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  call-workflow-passing-data:
+    uses: Anivive/github-ci/.github/workflows/nextflow-deploy-master.yml@master
+    secrets: inherit

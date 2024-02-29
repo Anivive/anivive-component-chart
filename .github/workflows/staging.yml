@@ -1,0 +1,10 @@
+name: Release to Staging
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  call-workflow-passing-data:
+    uses: Anivive/github-ci/.github/workflows/nextflow-build-staging.yml@master
+    secrets: inherit
