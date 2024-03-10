@@ -16,9 +16,9 @@ LABEL about.tags="Genomics"
 LABEL extra.binaries="bowtie2"
 
 ################## INSTALLATION Bowtie2 ######################
-ENV ZIP=bowtie2-2.5.3-linux-x86_64.zip
-ENV URL=https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.5.3
-ENV FOLDER=bowtie2-2.5.3-linux-x86_64
+ENV ZIP=bowtie2-2.4.1-linux-x86_64.zip
+ENV URL=https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.4.1
+ENV FOLDER=bowtie2-2.4.1-linux-x86_64
 ENV DST=/home/biodocker/bin
 ENV ULOCAL=/usr/local/bin
 
