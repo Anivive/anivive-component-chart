@@ -26,7 +26,7 @@ spec:
             app.kubernetes.io/instance: {{ $.Release.Name | quote }}
             helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
         spec:
-          restartPolicy: Never
+          restartPolicy: {{ $job.restartPolicy | default "Never" | quote }}
           containers:
             - name: {{ $job.name }}
         {{- if $job.image }}
@@ -45,9 +45,11 @@ spec:
               envFrom: {{- toYaml $job.envFrom | nindent 16 }}
         {{- end }}
         {{- if $job.volumeMounts }}
+          {{- range $index, $mount := $job.volumeMounts }}
               volumeMounts:
-              - name: {{- toYaml $job.volumeMounts.name | nindent 20}}
-                mountPath: {{- toYaml $job.volumeMounts.mountPath | nindent 20}}
+              - name: {{ $mount.name | quote}}
+                mountPath: {{ $mount.mountPath | quote }}
+          {{- end }}
         {{- end }}
 {{- if $job.ttlSecondsAfterFinished }}
       ttlSecondsAfterFinished: {{ $job.ttlSecondsAfterFinished }}
