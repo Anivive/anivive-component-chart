@@ -8,12 +8,12 @@ metadata:
     app.kubernetes.io/managed-by: {{$.Release.Service | quote }}
     app.kubernetes.io/instance: {{$.Release.Name | quote }}
     helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
-  {{- if $job.annotations -}}
+  {{- if $job.annotations }}
   annotations:
     # This is what defines this resource as a hook. Without this line, the
     # job is considered part of the release.
     {{- toYaml $job.annotations | nindent 4 }}
-  {{- end -}}
+  {{- end }}
 spec:
   schedule: {{ $job.schedule }}
   jobTemplate:
@@ -38,17 +38,17 @@ spec:
         {{- end }}
               command: {{- toYaml $job.command | nindent 16 }}
               args: {{- toYaml $job.args | nindent 16 }}
-        {{- if $job.env -}}
+        {{- if $job.env }}
               env: {{- toYaml $job.env | nindent 16 }}
-        {{- end -}}
-        {{- if $job.envFrom -}}
+        {{- end }}
+        {{- if $job.envFrom }}
               envFrom: {{- toYaml $job.envFrom | nindent 16 }}
-        {{- end -}}
-        {{- if $job.volumeMounts -}}
+        {{- end }}
+        {{- if $job.volumeMounts }}
               volumeMounts:
               - name: {{- toYaml $job.volumeMounts.name | nindent 20}}
                 mountPath: {{- toYaml $job.volumeMounts.mountPath | nindent 20}}
-        {{- end -}}
+        {{- end }}
 {{- if $job.ttlSecondsAfterFinished }}
       ttlSecondsAfterFinished: {{ $job.ttlSecondsAfterFinished }}
 {{- end }}
