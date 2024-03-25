@@ -15,7 +15,7 @@ metadata:
     {{- toYaml $job.annotations | nindent 4 }}
 {{- end }}
 spec:
-  schedule: {{ $job.schedule }}
+  schedule: {{ $job.schedule | quote }}
   jobTemplate:
     spec:
       template:
