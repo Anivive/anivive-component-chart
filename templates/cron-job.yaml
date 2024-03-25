@@ -37,12 +37,15 @@ spec:
               command: {{- toYaml $job.command | nindent 16 }}
               args: {{- toYaml $job.args | nindent 16 }}
         {{- if $job.env -}}
-              env:
-          {{- toYaml $job.env | nindent 16 }}
+              env: {{- toYaml $job.env | nindent 16 }}
         {{- end -}}
         {{- if $job.envFrom -}}
-              envFrom:
-          {{- toYaml $job.envFrom | nindent 16 }}
+              envFrom: {{- toYaml $job.envFrom | nindent 16 }}
+        {{- end -}}
+        {{- if $job.volumeMounts -}}
+              volumeMounts:
+              - name: {{- toYaml $job.volumeMounts.name | nindent 20}}
+                mountPath: {{- toYaml $job.volumeMounts.mountPath | nindent 20}}
         {{- end -}}
 {{- if $job.ttlSecondsAfterFinished }}
       ttlSecondsAfterFinished: {{ $job.ttlSecondsAfterFinished }}
