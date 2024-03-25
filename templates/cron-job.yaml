@@ -45,10 +45,10 @@ spec:
               envFrom: {{- toYaml $job.envFrom | nindent 16 }}
         {{- end }}
         {{- if $job.volumeMounts }}
-          {{- range $index, $mount := $job.volumeMounts }}
               volumeMounts:
-              - name: {{ $mount.name | quote}}
-                mountPath: {{ $mount.mountPath | quote }}
+          {{- range $index, $mount := $job.volumeMounts }}
+                - name: {{ $mount.name | quote}}
+                  mountPath: {{ $mount.mountPath | quote }}
           {{- end }}
         {{- end }}
 {{- if $job.ttlSecondsAfterFinished }}
