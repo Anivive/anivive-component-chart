@@ -1,5 +1,5 @@
 {{- if .Values.cronJobs}}
-  {{- range $cronJobs, $job := $.Values.cronJobs }}
+  {{- range $cronJobsIndex, $cronJob := $.Values.cronJobs }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -8,14 +8,14 @@ metadata:
     app.kubernetes.io/managed-by: {{$.Release.Service | quote }}
     app.kubernetes.io/instance: {{$.Release.Name | quote }}
     helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
-{{- if $job.annotations }}
+{{- if $cronJob.annotations }}
   annotations:
     # This is what defines this resource as a hook. Without this line, the
     # job is considered part of the release.
-    {{- toYaml $job.annotations | nindent 4 }}
+    {{- toYaml $cronJob.annotations | nindent 4 }}
 {{- end }}
 spec:
-  schedule: {{ $job.schedule | quote }}
+  schedule: {{ $cronJob.schedule | quote }}
   jobTemplate:
     spec:
       template:
@@ -26,33 +26,73 @@ spec:
             app.kubernetes.io/instance: {{ $.Release.Name | quote }}
             helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
         spec:
-          restartPolicy: {{ $job.restartPolicy | default "Never" | quote }}
+          restartPolicy: {{ $cronJob.restartPolicy | default "Never" | quote }}
           containers:
-            - name: {{ $job.name }}
-        {{- if $job.image }}
-              image: {{ $job.image | quote }}
+            - name: {{ $cronJob.name }}
+        {{- if $cronJob.image }}
+              image: {{ $cronJob.image | quote }}
         {{- else }}
         {{- with index $.Values.containers 0 }}
               image: {{ .image | quote }}
         {{- end }}
         {{- end }}
-              command: {{- toYaml $job.command | nindent 16 }}
-              args: {{- toYaml $job.args | nindent 16 }}
-        {{- if $job.env }}
-              env: {{- toYaml $job.env | nindent 16 }}
+              command: {{- toYaml $cronJob.command | nindent 16 }}
+              args: {{- toYaml $cronJob.args | nindent 16 }}
+        {{- if $cronJob.env }}
+              env: {{- toYaml $cronJob.env | nindent 16 }}
         {{- end }}
-        {{- if $job.envFrom }}
-              envFrom: {{- toYaml $job.envFrom | nindent 16 }}
+        {{- if $cronJob.envFrom }}
+              envFrom: {{- toYaml $cronJob.envFrom | nindent 16 }}
         {{- end }}
-        {{- if $job.volumeMounts }}
               volumeMounts:
-          {{- range $index, $mount := $job.volumeMounts }}
-                - name: {{ $mount.name | quote}}
-                  mountPath: {{ $mount.mountPath | quote }}
-          {{- end }}
-        {{- end }}
-{{- if $job.ttlSecondsAfterFinished }}
-      ttlSecondsAfterFinished: {{ $job.ttlSecondsAfterFinished }}
+                {{- range $volumeMountIndex, $volumeMount := $cronJob.volumeMounts }}
+                - mountPath: {{ $volumeMount.containerPath | quote }}
+                  name: {{ $volumeMount.volume.name | quote }}
+                  {{- if $volumeMount.volume.subPath }}
+                  subPath: {{ trimAll "/" $volumeMount.volume.subPath | default "" | quote }}
+                  {{- end }}
+                  readOnly: {{ $volumeMount.volume.readOnly | default false }}
+                {{- end }}
+          volumes:
+            {{- range $volumeIndex, $volume := $.Values.volumes }}
+            {{- $isVolumeOfThisComponent := false }}
+            {{- range $cronJobIndex, $cronJob := $.Values.cronJobs }}
+              {{- range $volumeMountIndex, $volumeMount := $cronJob.volumeMounts }}
+                {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared $volume.secret $volume.configMap $volume.hostPath (hasKey $volume "emptyDir") }}
+                  {{- if eq $volume.name $volumeMount.volume.name }}
+                    {{- $isVolumeOfThisComponent = true }}
+                  {{- end }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+            {{- if $isVolumeOfThisComponent }}
+            - name: {{ $volume.name | quote }}
+              {{- if $volume.secret }}
+              secret:
+                {{ toYaml $volume.secret | indent 12 }}
+              {{- else }}
+              {{- if $volume.configMap }}
+              configMap:
+                {{ toYaml $volume.configMap | indent 12 }}
+              {{- else }}
+              {{- if $volume.hostPath }}
+              hostPath:
+                {{ toYaml $volume.hostPath | indent 12 }}
+              {{- else }}
+              {{- if hasKey $volume "emptyDir" }}
+              emptyDir:
+                {{ toYaml $volume.emptyDir | indent 12 }}
+              {{- else }}
+              persistentVolumeClaim:
+                claimName: {{ $volume.name | quote }}
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+{{- if $cronJob.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ $cronJob.ttlSecondsAfterFinished }}
 {{- end }}
 ---
       {{- end }}
