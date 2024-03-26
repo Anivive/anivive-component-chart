@@ -473,6 +473,7 @@ spec:
           {{- end }}
         {{- end }}
         {{- end }}
+  {{- if eq $kind "StatefulSet" }}
   volumeClaimTemplates:
     {{- range $volumeIndex, $volume := $.Values.volumes }}
     {{- if or $volume.secret $volume.configMap $volume.hostPath (hasKey $volume "emptyDir") }}
@@ -529,6 +530,7 @@ spec:
     {{- end }}
     {{- end }}
     {{- end }}
+  {{- end }}
 ---
 
 # Create headless service for StatefulSet
