@@ -26,6 +26,12 @@ spec:
             app.kubernetes.io/instance: {{ $.Release.Name | quote }}
             helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
         spec:
+          {{- if $.Values.serviceAccount }}
+          serviceAccount: {{ $.Values.serviceAccount }}
+          {{- end }}
+          {{- if $.Values.serviceAccountName }}
+          serviceAccountName: {{ $.Values.serviceAccountName }}
+          {{- end }}
           restartPolicy: {{ $cronJob.restartPolicy | default "Never" | quote }}
           containers:
             - name: {{ $cronJob.name }}
