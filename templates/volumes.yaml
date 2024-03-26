@@ -11,6 +11,17 @@
     {{- end }}
   {{- end }}
 {{- end }}
+{{- if not $createVolume }}
+  {{- range $cronJobIndex, $cronJob := $.Values.cronJobs }}
+    {{- range $volumeMountIndex, $volumeMount := $cronJob.volumeMounts }}
+      {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared }}
+        {{- if eq $volume.name $volumeMount.volume.name }}
+          {{- $createVolume = true }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 {{- if $createVolume }}
 apiVersion: v1
 kind: PersistentVolumeClaim
