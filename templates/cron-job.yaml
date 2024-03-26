@@ -44,6 +44,7 @@ spec:
         {{- if $cronJob.envFrom }}
               envFrom: {{- toYaml $cronJob.envFrom | nindent 16 }}
         {{- end }}
+              securityContext: {{ toYaml $.Values.securityContext | indent 16 }}
               volumeMounts:
                 {{- range $volumeMountIndex, $volumeMount := $cronJob.volumeMounts }}
                 - mountPath: {{ $volumeMount.containerPath | quote }}
@@ -53,6 +54,75 @@ spec:
                   {{- end }}
                   readOnly: {{ $volumeMount.volume.readOnly | default false }}
                 {{- end }}
+              {{- if $cronJob.resources }}
+              resources:
+                {{- with $cronJob.resources.limits }}
+                limits:
+                  {{- if .cpu }}
+                  cpu: {{ .cpu | quote }}
+                  {{- end }}
+                  {{- if .memory }}
+                  memory: {{ .memory | quote }}
+                  {{- end }}
+                  {{- if .ephemeralStorage }}
+                  ephemeral-storage: {{ .ephemeralStorage | quote }}
+                  {{- end }}
+                {{- end }}
+                {{- if $cronJob.resources.requests }}
+                {{- with $cronJob.resources.requests }}
+                requests:
+                  {{- if .cpu }}
+                  cpu: {{ .cpu | quote }}
+                  {{- else }}
+                  {{- if $cronJob.resources.limits }}
+                  {{- if $cronJob.resources.limits.cpu }}
+                  cpu: "0"
+                  {{- end }}
+                  {{- end }}
+                  {{- end }}
+                  {{- if .memory }}
+                  memory: {{ .memory | quote }}
+                  {{- else }}
+                  {{- if $cronJob.resources.limits }}
+                  {{- if $cronJob.resources.limits.memory }}
+                  memory: "0"
+                  {{- end }}
+                  {{- end }}
+                  {{- end }}
+                  {{- if .ephemeralStorage }}
+                  ephemeral-storage: {{ .ephemeralStorage | quote }}
+                  {{- else }}
+                  {{- if $cronJob.resources.limits }}
+                  {{- if $cronJob.resources.limits.ephemeralStorage }}
+                  ephemeral-storage: "0"
+                  {{- end }}
+                  {{- end }}
+                  {{- end }}
+                {{- end }}
+                {{- else }}
+                {{- if $cronJob.resources.limits }}
+                requests:
+                  {{- if $cronJob.resources.limits.cpu }}
+                  cpu: "10m"
+                  {{- end }}
+                  {{- if $cronJob.resources.limits.memory }}
+                  memory: "50mi"
+                  {{- end }}
+                  {{- if $cronJob.resources.limits.ephemeralStorage }}
+                  ephemeral-storage: "0"
+                  {{- end }}
+                {{- end }}
+                {{- end }}
+              {{else}}
+              resources:
+                limits:
+                  cpu: 400m
+                  memory: 250Mi
+                requests:
+                  cpu: 10m
+                  memory: 50Mi
+              {{- end }}
+            {{- end }}
           volumes:
             {{- range $volumeIndex, $volume := $.Values.volumes }}
             {{- $isVolumeOfThisComponent := false }}
