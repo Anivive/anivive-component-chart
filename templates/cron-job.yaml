@@ -122,7 +122,6 @@ spec:
                   cpu: 10m
                   memory: 50Mi
               {{- end }}
-            {{- end }}
           volumes:
             {{- range $volumeIndex, $volume := $.Values.volumes }}
             {{- $isVolumeOfThisComponent := false }}
