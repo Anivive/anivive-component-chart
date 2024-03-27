@@ -6,5 +6,7 @@ on:
 
 jobs:
   call-workflow-passing-data:
-    uses: Anivive/github-ci/.github/workflows/nextflow-build-staging.yml@master
+    uses: Anivive/github-ci/.github/workflows/nextflow-build-staging-self-hosted.yml@master
     secrets: inherit
+    with:
+      lfs: 'true'
