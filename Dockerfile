@@ -1,19 +1,4 @@
-FROM biocontainers/biocontainers:v1.1.0_cv2
-
-################## METADATA ######################
-
-LABEL base_image="biocontainers:v1.1.0_cv2"
-LABEL version="2"
-LABEL software="bowtie2"
-LABEL software.version="2.5.3"
-LABEL about.summary="an ultrafast memory-efficient short read aligner"
-LABEL about.home="http://bowtie-bio.sourceforge.net/bowtie2/index.shtml"
-LABEL about.documentation="http://bowtie-bio.sourceforge.net/bowtie2/index.shtml"
-LABEL about.license_file="http://bowtie-bio.sourceforge.net/bowtie2/index.shtml"
-LABEL about.license="SPDX:Artistic-2.0"
-LABEL extra.identifiers.biotools="bowtie2"
-LABEL about.tags="Genomics"
-LABEL extra.binaries="bowtie2"
+FROM us-central1-docker.pkg.dev/anivive-207100/containerimages/nxf-biocontainer:1.0
 
 ################## INSTALLATION Bowtie2 ######################
 ENV ZIP=bowtie2-2.4.1-linux-x86_64.zip
@@ -61,4 +46,8 @@ RUN wget $URL/$TAR -O $DST/$TAR --no-check-certificate && \
     make && \
     make install
 
-WORKDIR /data
+# Copy data from local bowtie2 directory into Docker image
+COPY bowtie2 /data/bowtie2
+
+
+WORKDIR /data 

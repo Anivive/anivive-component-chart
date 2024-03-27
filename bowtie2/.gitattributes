@@ -1,0 +1,6 @@
+canFam4.1.bt2 filter=lfs diff=lfs merge=lfs -text
+canFam4.2.bt2 filter=lfs diff=lfs merge=lfs -text
+canFam4.3.bt2 filter=lfs diff=lfs merge=lfs -text
+canFam4.4.bt2 filter=lfs diff=lfs merge=lfs -text
+canFam4.rev.1.bt2 filter=lfs diff=lfs merge=lfs -text
+canFam4.rev.2.bt2 filter=lfs diff=lfs merge=lfs -text
