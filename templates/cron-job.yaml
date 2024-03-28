@@ -3,10 +3,10 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: "{{ $.Release.Name }}"
+  name: "{{ $cronJob.name }}"
   labels:
     app.kubernetes.io/managed-by: {{$.Release.Service | quote }}
-    app.kubernetes.io/instance: {{$.Release.Name | quote }}
+    app.kubernetes.io/instance: {{$cronJob.name | quote }}
     helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
 {{- if $cronJob.annotations }}
   annotations:
@@ -20,10 +20,10 @@ spec:
     spec:
       template:
         metadata:
-          name: "{{ $.Release.Name }}"
+          name: "{{ $cronJob.name }}"
           labels:
             app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
-            app.kubernetes.io/instance: {{ $.Release.Name | quote }}
+            app.kubernetes.io/instance: {{ $cronJob.name | quote }}
             helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
         spec:
           {{- if $.Values.serviceAccount }}
@@ -50,7 +50,7 @@ spec:
         {{- if $cronJob.envFrom }}
               envFrom: {{- toYaml $cronJob.envFrom | nindent 16 }}
         {{- end }}
-              securityContext: {{ toYaml $.Values.securityContext | indent 16 }}
+              securityContext: {{ toYaml $.Values.securityContext }}
               volumeMounts:
                 {{- range $volumeMountIndex, $volumeMount := $cronJob.volumeMounts }}
                 - mountPath: {{ $volumeMount.containerPath | quote }}
