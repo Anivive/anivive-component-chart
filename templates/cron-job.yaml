@@ -5,15 +5,17 @@ kind: CronJob
 metadata:
   name: "{{ $cronJob.name }}"
   labels:
-    app.kubernetes.io/managed-by: {{$.Release.Service | quote }}
-    app.kubernetes.io/instance: {{$cronJob.name | quote }}
-    helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
-{{- if $cronJob.annotations }}
+    "app.kubernetes.io/name": "devspace-app"
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    {{- range $labelName, $labelValue := $cronJob.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
   annotations:
-    # This is what defines this resource as a hook. Without this line, the
-    # job is considered part of the release.
-    {{- toYaml $cronJob.annotations | nindent 4 }}
-{{- end }}
+    "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $annotationName, $annotationValue := $cronJob.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
 spec:
   schedule: {{ $cronJob.schedule | quote }}
   jobTemplate:
@@ -22,9 +24,17 @@ spec:
         metadata:
           name: "{{ $cronJob.name }}"
           labels:
-            app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
-            app.kubernetes.io/instance: {{ $cronJob.name | quote }}
-            helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+            "app.kubernetes.io/name": "devspace-app"
+            "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+            "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+            {{- range $labelName, $labelValue := $cronJob.labels }}
+            {{ $labelName | quote }}: {{ $labelValue | quote }}
+            {{- end }}
+          annotations:
+            "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+            {{- range $annotationName, $annotationValue := $cronJob.annotations }}
+            {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+            {{- end }}
         spec:
           {{- if $.Values.serviceAccount }}
           serviceAccount: {{ $.Values.serviceAccount }}
