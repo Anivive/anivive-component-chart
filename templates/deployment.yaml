@@ -20,8 +20,8 @@ kind: {{ $kind }}
 metadata:
   name: {{ $.Release.Name | quote }}
   labels:
-    "app.kubernetes.io/name": "devspace-app"
-    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
     "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
     {{- range $labelName, $labelValue := $.Values.labels }}
     {{ $labelName | quote }}: {{ $labelValue | quote }}
@@ -66,8 +66,8 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      "app.kubernetes.io/name": "devspace-app"
-      "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+      "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+      "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
       "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
       {{- range $labelName, $labelValue := $.Values.labels }}
       {{ $labelName | quote }}: {{ $labelValue | quote }}
@@ -75,8 +75,8 @@ spec:
   template:
     metadata:
       labels:
-        "app.kubernetes.io/name": "devspace-app"
-        "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+        "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
         "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
         {{- range $labelName, $labelValue := $.Values.labels }}
         {{ $labelName | quote }}: {{ $labelValue | quote }}
@@ -213,6 +213,14 @@ spec:
           terminationMessagePolicy: {{ $container.terminationMessagePolicy }}
           {{- end }}
           env:
+            - name: DD_SERVICE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/service']
+            - name: DD_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/version']
 {{ toYaml $container.env | indent 12 }}
           envFrom:
 {{ toYaml $container.envFrom | indent 12 }}
@@ -493,8 +501,8 @@ spec:
   - metadata:
       name: {{ $volume.name | quote }}
       labels:
-        "app.kubernetes.io/name": "devspace-app"
-        "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+        "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
         "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
         {{- range $labelName, $labelValue := $volume.labels }}
         {{ $labelName | quote }}: {{ $labelValue | quote }}
