@@ -44,7 +44,8 @@ metadata:
   namespace: {{ $.Values.ingress.namespace | quote }}
   {{- end }}
   labels:
-    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/name": "devspace-app"
     "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
     {{- range $labelName, $labelValue := $.Values.ingress.labels }}
     {{ $labelName | quote }}: {{ $labelValue | quote }}

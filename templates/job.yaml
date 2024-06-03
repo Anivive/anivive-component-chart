@@ -17,6 +17,8 @@ spec:
     metadata:
       name: "{{ $.Release.Name }}"
       labels:
+        app.kubernetes.io/name: "devspace-app"
+        app.kubernetes.io/component: {{ $.Release.Name | quote }}
         app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
         app.kubernetes.io/instance: {{$.Release.Name | quote }}
         helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"

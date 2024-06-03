@@ -20,9 +20,11 @@ kind: {{ $kind }}
 metadata:
   name: {{ $.Release.Name | quote }}
   labels:
-    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/name": "devspace-app"
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
     "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
     "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    "tags.datadoghq.com/version": "{{ $.Values.Version }}"
     {{- range $labelName, $labelValue := $.Values.labels }}
     {{ $labelName | quote }}: {{ $labelValue | quote }}
     {{- end }}
@@ -66,17 +68,19 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      "app.kubernetes.io/name": {{ $.Release.Name | quote }}
-      "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
+      "app.kubernetes.io/name": "devspace-app"
       "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+      "app.kubernetes.io/component": {{ $.Release.Name | quote }}
       {{- range $labelName, $labelValue := $.Values.labels }}
       {{ $labelName | quote }}: {{ $labelValue | quote }}
       {{- end }}
   template:
     metadata:
       labels:
-        "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/name": "devspace-app"
+        "app.kubernetes.io/component": {{ $.Release.Name | quote }}
         "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
+        "tags.datadoghq.com/version": "{{ $.Values.Version }}"
         "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
         {{- range $labelName, $labelValue := $.Values.labels }}
         {{ $labelName | quote }}: {{ $labelValue | quote }}
@@ -501,7 +505,8 @@ spec:
   - metadata:
       name: {{ $volume.name | quote }}
       labels:
-        "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/name": "devspace-app"
+        "app.kubernetes.io/component": {{ $.Release.Name | quote }}
         "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
         "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
         {{- range $labelName, $labelValue := $volume.labels }}
@@ -552,7 +557,8 @@ metadata:
   name: "{{ $.Release.Name }}-headless"
   {{- end }}
   labels:
-    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/name": "devspace-app"
+    "app.kubernetes.io/component": {{ $.Release.Name | quote }}
     "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
     {{- range $labelName, $labelValue := $.Values.labels }}
     {{ $labelName | quote }}: {{ $labelValue | quote }}
