@@ -7,7 +7,7 @@ apiVersion: apps/v1
     {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared }}
     {{- else }}
       {{- range $volumeIndex, $volume := $.Values.volumes }}
-        {{- if not (or (hasKey $volume "secret") (hasKey $volume "configMap") (hasKey $volume "hostPath") (hasKey $volume "emptyDir") ) }}
+        {{- if not (or (hasKey $volume "secret") (hasKey $volume "configMap") (hasKey $volume "hostPath") (hasKey $volume "emptyDir") (hasKey $volume "csi") ) }}
         {{- if eq $volumeMount.volume.name $volume.name }}
           {{- $kind = "StatefulSet" }}
         {{- end }}
@@ -22,8 +22,8 @@ metadata:
   labels:
     "app.kubernetes.io/name": "devspace-app"
     "app.kubernetes.io/component": {{ $.Release.Name | quote }}
-    "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
     "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+    "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
     "tags.datadoghq.com/version": "{{ $.Values.Version }}"
     {{- range $labelName, $labelValue := $.Values.labels }}
     {{ $labelName | quote }}: {{ $labelValue | quote }}
@@ -79,15 +79,18 @@ spec:
       labels:
         "app.kubernetes.io/name": "devspace-app"
         "app.kubernetes.io/component": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
         "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
         "tags.datadoghq.com/version": "{{ $.Values.Version }}"
-        "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
         {{- range $labelName, $labelValue := $.Values.labels }}
         {{ $labelName | quote }}: {{ $labelValue | quote }}
         {{- end }}
       annotations:
         "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
         {{- range $annotationName, $annotationValue := $.Values.annotations }}
+        {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+        {{- end }}
+        {{- range $annotationName, $annotationValue := $.Values.pod.annotations }}
         {{ $annotationName | quote }}: {{ $annotationValue | quote }}
         {{- end }}
     spec:
@@ -225,7 +228,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.labels['tags.datadoghq.com/version']
+          {{- if $container.env }}
 {{ toYaml $container.env | indent 12 }}
+          {{- end }}
           envFrom:
 {{ toYaml $container.envFrom | indent 12 }}
           securityContext:
@@ -452,7 +457,7 @@ spec:
         {{- $isVolumeOfThisComponent := false }}
         {{- range $containerIndex, $container := $.Values.containers }}
           {{- range $volumeMountIndex, $volumeMount := $container.volumeMounts }}
-            {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared $volume.secret $volume.configMap $volume.hostPath (hasKey $volume "emptyDir") }}
+            {{- if or $volumeMount.volume.readOnly $volumeMount.volume.shared $volumeMount.volume.csi $volume.secret $volume.configMap $volume.hostPath (hasKey $volume "emptyDir") }}
               {{- if eq $volume.name $volumeMount.volume.name }}
                 {{- $isVolumeOfThisComponent = true }}
               {{- end }}
@@ -477,8 +482,13 @@ spec:
           emptyDir:
 {{ toYaml $volume.emptyDir | indent 12 }}
           {{- else }}
+          {{- if hasKey $volume "csi" }}
+          csi:
+{{ toYaml $volume.csi | indent 12 }}
+          {{- else }}
           persistentVolumeClaim:
             claimName: {{ $volume.name | quote }}
+          {{- end }}
           {{- end }}
           {{- end }}
           {{- end }}
@@ -488,7 +498,7 @@ spec:
   {{- if eq $kind "StatefulSet" }}
   volumeClaimTemplates:
     {{- range $volumeIndex, $volume := $.Values.volumes }}
-    {{- if or $volume.secret $volume.configMap $volume.hostPath (hasKey $volume "emptyDir") }}
+    {{- if or $volume.secret $volume.configMap $volume.hostPath $volume.csi (hasKey $volume "emptyDir") }}
     {{- else }}
     {{- $isVolumeTemplateOfThisComponent := false }}
     {{- range $containerIndex, $container := $.Values.containers }}
@@ -507,8 +517,8 @@ spec:
       labels:
         "app.kubernetes.io/name": "devspace-app"
         "app.kubernetes.io/component": {{ $.Release.Name | quote }}
-        "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
         "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
+        "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
         {{- range $labelName, $labelValue := $volume.labels }}
         {{ $labelName | quote }}: {{ $labelValue | quote }}
         {{- end }}
