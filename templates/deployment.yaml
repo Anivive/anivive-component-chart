@@ -90,8 +90,10 @@ spec:
         {{- range $annotationName, $annotationValue := $.Values.annotations }}
         {{ $annotationName | quote }}: {{ $annotationValue | quote }}
         {{- end }}
-        {{- range $annotationName, $annotationValue := $.Values.pod.annotations }}
-        {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+        {{- if $.Values.pod }}
+          {{- range $annotationName, $annotationValue := $.Values.pod.annotations }}
+          {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+          {{- end }}
         {{- end }}
     spec:
       imagePullSecrets:
