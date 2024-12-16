@@ -1,5 +1,5 @@
 {{- if .Values.initJobs }}
-  {{- range $initJobs, $job := $.Values.initJobs }}
+{{- range $initJobs, $job := $.Values.initJobs }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -8,10 +8,14 @@ metadata:
     app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
     app.kubernetes.io/instance: {{ $.Release.Name | quote }}
     helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
+    "tags.datadoghq.com/version": "{{ $.Values.Version }}"
   annotations:
-    # This is what defines this resource as a hook. Without this line, the
-    # job is considered part of the release.
-    {{- toYaml $job.annotations | nindent 4 }}
+    {{- if $job.annotations }}
+    {{- range $key, $value := $job.annotations }}
+    {{ $key | quote }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   template:
     metadata:
@@ -22,23 +26,94 @@ spec:
         app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
         app.kubernetes.io/instance: {{$.Release.Name | quote }}
         helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+        "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
+        "tags.datadoghq.com/version": "{{ $.Values.Version }}"
     spec:
+      {{- if $.Values.serviceAccount.name }}
+      serviceAccountName: {{ $.Values.serviceAccount.name }}
+      {{- end }}
+      {{- if $job.podSecurityContext }}
+      securityContext: {{ toYaml $job.podSecurityContext | nindent 8 }}
+      {{- end }}
       restartPolicy: Never
+      imagePullSecrets:
+        {{- range $secretIndex, $secretName := $.Values.pullSecrets }}
+        - name: {{ $secretName | quote }}
+        {{- end }}
       containers:
-        - name: {{ $job.name }}
-    {{- if $job.image }}
-          image: {{ $job.image | quote }}
-    {{- else }}
-    {{- with index $.Values.containers 0 }}
-          image: {{ .image | quote }}
-    {{- end }}
-    {{- end }}
-          command: {{- toYaml $job.command | nindent 12 }}
-          args: {{- toYaml $job.args | nindent 12 }}
+        {{- range $containerIndex, $jobContainer := $job.containers }}
+        - name: {{ $jobContainer.name }}
+          image: {{ $jobContainer.image | quote }}
+          {{- if $jobContainer.imagePullPolicy}}
+          imagePullPolicy: {{ $jobContainer.imagePullPolicy }}
+          {{- end }}
+          {{- if $jobContainer.workingDir }}
+          workingDir: {{ $jobContainer.workingDir }}
+          {{- end }}
+          {{- if $jobContainer.command }}
+          command: {{- toYaml $jobContainer.command | nindent 12 }}
+          {{- end }}
+          {{- if $jobContainer.args }}
+          args: {{- toYaml $jobContainer.args | nindent 12 }}
+          {{- end }}
           env:
-  {{- toYaml $job.env | nindent 12 }}
-          envFrom:
-  {{- toYaml $job.envFrom | nindent 12 }}
+            - name: DD_SERVICE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/service']
+            - name: DD_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/version']
+            {{- if $jobContainer.env }}
+            {{- toYaml $jobContainer.env | nindent 12 }}
+            {{- end }}
+          {{- if $jobContainer.envFrom }}
+          envFrom: {{- toYaml $jobContainer.envFrom | nindent 12 }}
+          {{- end }}
+          {{- if $jobContainer.volumeMounts }}
+          volumeMounts:
+            {{- range $volumeMountIndex, $volumeMount := $jobContainer.volumeMounts }}
+            - mountPath: {{ $volumeMount.containerPath | quote }}
+              name: {{ $volumeMount.volume.name | quote }}
+              {{- if $volumeMount.volume.subPath }}
+              subPath: {{ trimAll "/" $volumeMount.volume.subPath | default "" | quote }}
+              {{- end }}
+              readOnly: {{ $volumeMount.volume.readOnly | default false }}
+            {{- end }}
+          {{- end }}
+          {{- if $jobContainer.resources }}
+          resources: {{- toYaml $jobContainer.resources | nindent 12 }}
+          {{- else }}
+          resources:
+            limits:
+              cpu: 400m
+              memory: 250Mi
+            requests:
+              cpu: 10m
+              memory: 50Mi
+          {{- end }}
+        {{- end }}
+      {{- if $job.volumes }}
+      volumes:
+        {{- range $volumeIndex, $volume := $job.volumes }}
+        - name: {{ $volume.name | quote }}
+          {{- if $volume.secret }}
+          secret: {{- toYaml $volume.secret | nindent 12 }}
+          {{- else if $volume.configMap }}
+          configMap: {{- toYaml $volume.configMap | nindent 12 }}
+          {{- else if $volume.hostPath }}
+          hostPath: {{- toYaml $volume.hostPath | nindent 12 }}
+          {{- else if hasKey $volume "emptyDir" }}
+          emptyDir: {{- toYaml $volume.emptyDir | nindent 12 }}
+          {{- else if hasKey $volume "csi" }}
+          csi: {{- toYaml $volume.csi | nindent 12 }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ $volume.name | quote }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
 ---
-  {{- end }}
-  {{- end }}
+{{- end }}
+{{- end }}
