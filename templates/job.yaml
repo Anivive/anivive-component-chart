@@ -29,7 +29,7 @@ spec:
         "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
         "tags.datadoghq.com/version": "{{ $.Values.Version }}"
     spec:
-      {{- if $.Values.serviceAccount.name }}
+      {{- if and $.Values.serviceAccount $.Values.serviceAccount.name }}
       serviceAccountName: {{ $.Values.serviceAccount.name }}
       {{- end }}
       {{- if $job.podSecurityContext }}
