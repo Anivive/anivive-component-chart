@@ -96,6 +96,7 @@ spec:
           {{- end }}
         {{- end }}
     spec:
+      serviceAccountName: {{ if $.Values.serviceAccount }}{{ if kindIs "map" $.Values.serviceAccount }}{{ $.Values.serviceAccount.name }}{{ else }}{{ $.Values.serviceAccount }}{{ end }}{{ else }}default{{ end }}
       imagePullSecrets:
         {{- range $secretIndex, $secretName := $.Values.pullSecrets }}
         - name: {{ $secretName | quote }}
@@ -161,9 +162,6 @@ spec:
       {{- end }}
       {{- if $.Values.schedulerName }}
       schedulerName: {{ $.Values.schedulerName }}
-      {{- end }}
-      {{- if $.Values.serviceAccount }}
-      serviceAccount: {{ $.Values.serviceAccount }}
       {{- end }}
       {{- if $.Values.serviceAccountName }}
       serviceAccountName: {{ $.Values.serviceAccountName }}
@@ -339,6 +337,7 @@ spec:
           {{- else }}
           name: "init-container-{{ $containerIndex }}"
           {{- end }}
+          restartPolicy: {{ $container.restartPolicy | default "Never" }}
           {{- if $container.imagePullPolicy }}
           imagePullPolicy: {{ $container.imagePullPolicy }}
           {{- end }}

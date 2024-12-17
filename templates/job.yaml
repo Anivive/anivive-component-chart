@@ -19,7 +19,7 @@ metadata:
 spec:
   template:
     metadata:
-      name: "{{ $.Release.Name }}"
+      name: "{{ $.Release.Name }}-{{ $job.name }}"
       labels:
         app.kubernetes.io/name: "devspace-app"
         app.kubernetes.io/component: {{ $.Release.Name | quote }}
@@ -29,9 +29,8 @@ spec:
         "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
         "tags.datadoghq.com/version": "{{ $.Values.Version }}"
     spec:
-      {{- if and $.Values.serviceAccount $.Values.serviceAccount.name }}
-      serviceAccountName: {{ $.Values.serviceAccount.name }}
-      {{- end }}
+      shareProcessNamespace: {{ $job.shareProcessNamespace | default false }}
+      serviceAccountName: {{ if $.Values.serviceAccount }}{{ if kindIs "map" $.Values.serviceAccount }}{{ $.Values.serviceAccount.name }}{{ else }}{{ $.Values.serviceAccount }}{{ end }}{{ else }}default{{ end }}
       {{- if $job.podSecurityContext }}
       securityContext: {{ toYaml $job.podSecurityContext | nindent 8 }}
       {{- end }}
@@ -40,6 +39,54 @@ spec:
         {{- range $secretIndex, $secretName := $.Values.pullSecrets }}
         - name: {{ $secretName | quote }}
         {{- end }}
+      {{- if $job.initContainers }}
+      initContainers:
+        {{- range $containerIndex, $initContainer := $job.initContainers }}
+        - name: {{ $initContainer.name }}
+          image: {{ $initContainer.image | quote }}
+          {{- if $initContainer.imagePullPolicy}}
+          imagePullPolicy: {{ $initContainer.imagePullPolicy }}
+          {{- end }}
+          restartPolicy: {{ $initContainer.restartPolicy | default "Never" }}
+          {{- if $initContainer.workingDir }}
+          workingDir: {{ $initContainer.workingDir }}
+          {{- end }}
+          {{- if $initContainer.command }}
+          command: {{- toYaml $initContainer.command | nindent 12 }}
+          {{- end }}
+          {{- if $initContainer.args }}
+          args: {{- toYaml $initContainer.args | nindent 12 }}
+          {{- end }}
+          {{- if $initContainer.env }}
+          env: {{- toYaml $initContainer.env | nindent 12 }}
+          {{- end }}
+          {{- if $initContainer.envFrom }}
+          envFrom: {{- toYaml $initContainer.envFrom | nindent 12 }}
+          {{- end }}
+          {{- if $initContainer.volumeMounts }}
+          volumeMounts:
+            {{- range $volumeMountIndex, $volumeMount := $initContainer.volumeMounts }}
+            - mountPath: {{ $volumeMount.containerPath | quote }}
+              name: {{ $volumeMount.volume.name | quote }}
+              {{- if $volumeMount.volume.subPath }}
+              subPath: {{ trimAll "/" $volumeMount.volume.subPath | default "" | quote }}
+              {{- end }}
+              readOnly: {{ $volumeMount.volume.readOnly | default false }}
+            {{- end }}
+          {{- end }}
+          {{- if $initContainer.resources }}
+          resources: {{- toYaml $initContainer.resources | nindent 12 }}
+          {{- else }}
+          resources:
+            limits:
+              cpu: 400m
+              memory: 250Mi
+            requests:
+              cpu: 10m
+              memory: 50Mi
+          {{- end }}
+        {{- end }}
+      {{- end }}
       containers:
         {{- range $containerIndex, $jobContainer := $job.containers }}
         - name: {{ $jobContainer.name }}
