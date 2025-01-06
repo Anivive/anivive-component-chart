@@ -36,12 +36,7 @@ spec:
             {{ $annotationName | quote }}: {{ $annotationValue | quote }}
             {{- end }}
         spec:
-          {{- if $.Values.serviceAccount }}
-          serviceAccount: {{ $.Values.serviceAccount }}
-          {{- end }}
-          {{- if $.Values.serviceAccountName }}
-          serviceAccountName: {{ $.Values.serviceAccountName }}
-          {{- end }}
+          serviceAccountName: {{ if $.Values.serviceAccount }}{{ if kindIs "map" $.Values.serviceAccount }}{{ $.Values.serviceAccount.name }}{{ else }}{{ $.Values.serviceAccount }}{{ end }}{{ else }}default{{ end }}
           restartPolicy: {{ $cronJob.restartPolicy | default "Never" | quote }}
           {{- if $cronJob.initContainers }}
           initContainers:
