@@ -80,8 +80,8 @@ spec:
         "app.kubernetes.io/name": {{ $.Release.Name | quote }}
         "app.kubernetes.io/component": {{ $.Release.Name | quote }}
         "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
-        "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
-        "tags.datadoghq.com/version": "{{ $.Values.Version }}"
+        "app.kubernetes.io/ms-name": {{ $.Release.Name | quote }}
+        "app.kubernetes.io/version": "{{ $.Values.Version }}"
         {{- range $labelName, $labelValue := $.Values.labels }}
         {{ $labelName | quote }}: {{ $labelValue | quote }}
         {{- end }}
