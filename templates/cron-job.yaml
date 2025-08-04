@@ -20,6 +20,9 @@ spec:
   schedule: {{ $cronJob.schedule | quote }}
   jobTemplate:
     spec:
+      {{- if $cronJob.backoffLimit }}
+      backoffLimit: {{ $cronJob.backoffLimit }}
+      {{- end }}
       template:
         metadata:
           name: "{{ $cronJob.name }}"
