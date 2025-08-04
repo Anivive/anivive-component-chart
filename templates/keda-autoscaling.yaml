@@ -1,0 +1,36 @@
+{{- if $.Values.autoScaling }}
+{{- if $.Values.autoScaling.keda }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ $.Release.Name }}-scaler
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    {{- range $labelName, $labelValue := $.Values.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  annotations:
+    "helm.sh/chart": "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
+    {{- range $annotationName, $annotationValue := $.Values.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+spec:
+  scaleTargetRef:
+    name: {{ $.Release.Name }}
+  minReplicaCount: {{ $.Values.replicas | default 1 }}
+  maxReplicaCount: {{ $.Values.autoScaling.keda.maxReplicas | default 10 }}
+  triggers:
+    - type: prometheus
+      metadata:
+        serverAddress: {{ $.Values.autoScaling.keda.prometheusServer | default "http://prometheus-server.alloy.svc.cluster.local:80" }}
+        metricName: moleculer_request_total
+        threshold: {{ $.Values.autoScaling.keda.threshold | default "5" }}
+        query: sum by (app_kubernetes_io_ms_name) (rate(moleculer_request_total{app_kubernetes_io_ms_name="{{ $.Release.Name }}"}[1m]))
+    - type: cpu
+      metadata:
+        type: Utilization
+        value: {{ $.Values.autoScaling.keda.CPU_UTILIZATION | default "100" }}
+        containerName: {{ $.Release.Name }}
+{{- end }}
+{{- end }}
