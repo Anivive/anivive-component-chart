@@ -323,6 +323,7 @@ spec:
               memory: 50Mi
           {{- end }}
         {{- end }}
+      {{- if $Values.initContainers }}
       initContainers:
         {{- range $containerIndex, $container := $.Values.initContainers }}
           {{- if $container.image}}
@@ -453,6 +454,8 @@ spec:
             {{- end }}
           {{- end }}
         {{- end }}
+      {{- end }}
+      {{- if $Values.volumes }}
       volumes:
         {{- range $volumeIndex, $volume := $.Values.volumes }}
         {{- $isVolumeOfThisComponent := false }}
@@ -496,6 +499,7 @@ spec:
           {{- end }}
         {{- end }}
         {{- end }}
+      {{- end }}
   {{- if eq $kind "StatefulSet" }}
   volumeClaimTemplates:
     {{- range $volumeIndex, $volume := $.Values.volumes }}
