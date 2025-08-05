@@ -90,10 +90,9 @@ spec:
         {{- range $annotationName, $annotationValue := $.Values.annotations }}
         {{ $annotationName | quote }}: {{ $annotationValue | quote }}
         {{- end }}
-        {{- if $.Values.pod }}
-          {{- range $annotationName, $annotationValue := $.Values.pod.annotations }}
-          {{ $annotationName | quote }}: {{ $annotationValue | quote }}
-          {{- end }}
+        {{- $podAnnotations := (default dict $.Values.pod.annotations) }}
+        {{- range $annotationName, $annotationValue := $podAnnotations }}
+        {{ $annotationName | quote }}: {{ $annotationValue | quote }}
         {{- end }}
     spec:
       serviceAccountName: {{ if $.Values.serviceAccount }}{{ if kindIs "map" $.Values.serviceAccount }}{{ $.Values.serviceAccount.name }}{{ else }}{{ $.Values.serviceAccount }}{{ end }}{{ else }}default{{ end }}
@@ -323,7 +322,7 @@ spec:
               memory: 50Mi
           {{- end }}
         {{- end }}
-      {{- if $Values.initContainers }}
+      {{- if $.Values.initContainers }}
       initContainers:
         {{- range $containerIndex, $container := $.Values.initContainers }}
           {{- if $container.image}}
@@ -455,7 +454,7 @@ spec:
           {{- end }}
         {{- end }}
       {{- end }}
-      {{- if $Values.volumes }}
+      {{- if $.Values.volumes }}
       volumes:
         {{- range $volumeIndex, $volume := $.Values.volumes }}
         {{- $isVolumeOfThisComponent := false }}
