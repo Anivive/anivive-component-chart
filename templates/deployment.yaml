@@ -90,7 +90,9 @@ spec:
         {{- range $annotationName, $annotationValue := $.Values.annotations }}
         {{ $annotationName | quote }}: {{ $annotationValue | quote }}
         {{- end }}
+        {{- if $.Values.pod.annotations }}
         {{- $podAnnotations := (default dict $.Values.pod.annotations) }}
+        {{- end }}
         {{- range $annotationName, $annotationValue := $podAnnotations }}
         {{ $annotationName | quote }}: {{ $annotationValue | quote }}
         {{- end }}
