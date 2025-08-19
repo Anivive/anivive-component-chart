@@ -90,11 +90,12 @@ spec:
         {{- range $annotationName, $annotationValue := $.Values.annotations }}
         {{ $annotationName | quote }}: {{ $annotationValue | quote }}
         {{- end }}
-        {{- if $.Values.pod.annotations }}
-        {{- $podAnnotations := (default dict $.Values.pod.annotations) }}
-        {{- end }}
-        {{- range $annotationName, $annotationValue := $podAnnotations }}
+        {{- if $.Values.pod }}
+          {{- if $.Values.pod.annotations }}
+            {{- range $annotationName, $annotationValue := $.Values.pod.annotations }}
         {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+            {{- end }}
+          {{- end }}
         {{- end }}
     spec:
       serviceAccountName: {{ if $.Values.serviceAccount }}{{ if kindIs "map" $.Values.serviceAccount }}{{ $.Values.serviceAccount.name }}{{ else }}{{ $.Values.serviceAccount }}{{ end }}{{ else }}default{{ end }}
