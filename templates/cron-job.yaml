@@ -45,7 +45,7 @@ spec:
           initContainers:
             {{- range $containerIndex, $initContainer := $cronJob.initContainers }}
             - name: {{ $initContainer.name }}
-              image: {{ $initContainer.image | quote }}
+              image: {{ printf "%s%s" $initContainer.image (default $.Values.imageTag $initContainer.imageTag) | quote }}
               {{- if $initContainer.imagePullPolicy}}
               imagePullPolicy: {{ $initContainer.imagePullPolicy }}
               {{- end }}
@@ -92,10 +92,10 @@ spec:
           containers:
             - name: {{ $cronJob.name }}
         {{- if $cronJob.image }}
-              image: {{ $cronJob.image | quote }}
+              image: {{ printf "%s%s" $cronJob.image (default $.Values.imageTag $cronJob.imageTag) | quote }}
         {{- else }}
         {{- with index $.Values.containers 0 }}
-              image: {{ .image | quote }}
+              image: {{ printf "%s%s" .image (default $.Values.imageTag .imageTag) | quote }}
         {{- end }}
         {{- end }}
               command: {{- toYaml $cronJob.command | nindent 16 }}

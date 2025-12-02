@@ -43,7 +43,7 @@ spec:
       initContainers:
         {{- range $containerIndex, $initContainer := $job.initContainers }}
         - name: {{ $initContainer.name }}
-          image: {{ $initContainer.image | quote }}
+          image: {{ printf "%s%s" $initContainer.image (default $.Values.imageTag $initContainer.imageTag) | quote }}
           {{- if $initContainer.imagePullPolicy}}
           imagePullPolicy: {{ $initContainer.imagePullPolicy }}
           {{- end }}
@@ -90,7 +90,7 @@ spec:
       containers:
         {{- range $containerIndex, $jobContainer := $job.containers }}
         - name: {{ $jobContainer.name }}
-          image: {{ $jobContainer.image | quote }}
+          image: {{ printf "%s%s" $jobContainer.image (default $.Values.imageTag $jobContainer.imageTag) | quote }}
           {{- if $jobContainer.imagePullPolicy}}
           imagePullPolicy: {{ $jobContainer.imagePullPolicy }}
           {{- end }}

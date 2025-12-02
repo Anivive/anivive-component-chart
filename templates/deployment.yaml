@@ -186,7 +186,7 @@ spec:
 {{ toYaml $.Values.ephemeralContainers | indent 8 }}
       containers:
         {{- range $containerIndex, $container := $.Values.containers }}
-        - image: {{ $container.image | quote }}
+        - image: {{ printf "%s%s" $container.image (default $.Values.imageTag $container.imageTag) | quote }}
           {{- if $container.name }}
           name: {{ $container.name | quote }}
           {{- else }}
@@ -329,10 +329,10 @@ spec:
       initContainers:
         {{- range $containerIndex, $container := $.Values.initContainers }}
           {{- if $container.image}}
-        - image: {{ $container.image | quote }}
+        - image: {{ printf "%s%s" $container.image (default $.Values.imageTag $container.imageTag) | quote }}
           {{- else}}
           {{- with index $.Values.containers 0 }}
-        - image: {{ .image | quote }}
+        - image: {{ printf "%s%s" .image (default $.Values.imageTag .imageTag) | quote }}
           {{- end }}
           {{- end}}
           {{- if $container.name }}
