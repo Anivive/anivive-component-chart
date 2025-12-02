@@ -42,8 +42,10 @@ spec:
       {{- if $job.initContainers }}
       initContainers:
         {{- range $containerIndex, $initContainer := $job.initContainers }}
+        {{- $tag := default $.Values.imageTag $initContainer.imageTag }}
+        {{- $sha := default $.Values.imageSha $initContainer.imageSha }}
         - name: {{ $initContainer.name }}
-          image: {{ printf "%s%s" $initContainer.image (default $.Values.imageTag $initContainer.imageTag) | quote }}
+          image: {{ if $tag }}{{ printf "%s:%s" $initContainer.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $initContainer.image $sha | quote }}{{ else }}{{ $initContainer.image | quote }}{{ end }}
           {{- if $initContainer.imagePullPolicy}}
           imagePullPolicy: {{ $initContainer.imagePullPolicy }}
           {{- end }}
@@ -89,8 +91,10 @@ spec:
       {{- end }}
       containers:
         {{- range $containerIndex, $jobContainer := $job.containers }}
+        {{- $tag := default $.Values.imageTag $jobContainer.imageTag }}
+        {{- $sha := default $.Values.imageSha $jobContainer.imageSha }}
         - name: {{ $jobContainer.name }}
-          image: {{ printf "%s%s" $jobContainer.image (default $.Values.imageTag $jobContainer.imageTag) | quote }}
+          image: {{ if $tag }}{{ printf "%s:%s" $jobContainer.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $jobContainer.image $sha | quote }}{{ else }}{{ $jobContainer.image | quote }}{{ end }}
           {{- if $jobContainer.imagePullPolicy}}
           imagePullPolicy: {{ $jobContainer.imagePullPolicy }}
           {{- end }}
