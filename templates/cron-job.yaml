@@ -44,8 +44,8 @@ spec:
           {{- if $cronJob.initContainers }}
           initContainers:
             {{- range $containerIndex, $initContainer := $cronJob.initContainers }}
-            {{- $tag := default $.Values.imageTag $initContainer.imageTag }}
-            {{- $sha := default $.Values.imageSha $initContainer.imageSha }}
+            {{- $tag := default $initContainer.imageTag $.Values.imageTag }}
+            {{- $sha := default $initContainer.imageSha $.Values.imageSha }}
             - name: {{ $initContainer.name }}
               image: {{ if $tag }}{{ printf "%s:%s" $initContainer.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $initContainer.image $sha | quote }}{{ else }}{{ $initContainer.image | quote }}{{ end }}
               {{- if $initContainer.imagePullPolicy}}
@@ -94,13 +94,13 @@ spec:
           containers:
             - name: {{ $cronJob.name }}
         {{- if $cronJob.image }}
-              {{- $tag := default $.Values.imageTag $cronJob.imageTag }}
-              {{- $sha := default $.Values.imageSha $cronJob.imageSha }}
+              {{- $tag := default $cronJob.imageTag $.Values.imageTag }}
+              {{- $sha := default $cronJob.imageSha $.Values.imageSha }}
               image: {{ if $tag }}{{ printf "%s:%s" $cronJob.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $cronJob.image $sha | quote }}{{ else }}{{ $cronJob.image | quote }}{{ end }}
         {{- else }}
         {{- with index $.Values.containers 0 }}
-              {{- $tag := default $.Values.imageTag .imageTag }}
-              {{- $sha := default $.Values.imageSha .imageSha }}
+              {{- $tag := default .imageTag $.Values.imageTag }}
+              {{- $sha := default .imageSha $.Values.imageSha }}
               image: {{ if $tag }}{{ printf "%s:%s" .image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" .image $sha | quote }}{{ else }}{{ .image | quote }}{{ end }}
         {{- end }}
         {{- end }}

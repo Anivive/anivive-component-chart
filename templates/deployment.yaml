@@ -186,8 +186,8 @@ spec:
 {{ toYaml $.Values.ephemeralContainers | indent 8 }}
       containers:
         {{- range $containerIndex, $container := $.Values.containers }}
-        {{- $tag := default $.Values.imageTag $container.imageTag }}
-        {{- $sha := default $.Values.imageSha $container.imageSha }}
+        {{- $tag := default $container.imageTag $.Values.imageTag }}
+        {{- $sha := default $container.imageSha $.Values.imageSha }}
         - image: {{ if $tag }}{{ printf "%s:%s" $container.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $container.image $sha | quote }}{{ else }}{{ $container.image | quote }}{{ end }}
           {{- if $container.name }}
           name: {{ $container.name | quote }}
@@ -331,13 +331,13 @@ spec:
       initContainers:
         {{- range $containerIndex, $container := $.Values.initContainers }}
           {{- if $container.image}}
-          {{- $tag := default $.Values.imageTag $container.imageTag }}
-          {{- $sha := default $.Values.imageSha $container.imageSha }}
+          {{- $tag := default $container.imageTag $.Values.imageTag }}
+          {{- $sha := default $container.imageSha $.Values.imageSha }}
         - image: {{ if $tag }}{{ printf "%s:%s" $container.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $container.image $sha | quote }}{{ else }}{{ $container.image | quote }}{{ end }}
           {{- else}}
           {{- with index $.Values.containers 0 }}
-          {{- $tag := default $.Values.imageTag $container.imageTag }}
-          {{- $sha := default $.Values.imageSha $container.imageSha }}
+          {{- $tag := default .imageTag $.Values.imageTag }}
+          {{- $sha := default .imageSha $.Values.imageSha }}
         - image: {{ if $tag }}{{ printf "%s:%s" .image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" .image $sha | quote }}{{ else }}{{ .image | quote }}{{ end }}
           {{- end }}
           {{- end}}
