@@ -44,10 +44,18 @@ spec:
           {{- if $cronJob.initContainers }}
           initContainers:
             {{- range $containerIndex, $initContainer := $cronJob.initContainers }}
-            {{- $tag := default $initContainer.imageTag $.Values.imageTag }}
-            {{- $sha := default $initContainer.imageSha $.Values.imageSha }}
             - name: {{ $initContainer.name }}
-              image: {{ if $tag }}{{ printf "%s:%s" $initContainer.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $initContainer.image $sha | quote }}{{ else }}{{ $initContainer.image | quote }}{{ end }}
+              {{- if $initContainer.imageTag }}
+              image: {{ printf "%s:%s" $initContainer.image $initContainer.imageTag | quote }}
+              {{- else if $initContainer.imageSha }}
+              image: {{ printf "%s@%s" $initContainer.image $initContainer.imageSha | quote }}
+              {{- else if $.Values.imageTag }}
+              image: {{ printf "%s:%s" $initContainer.image $.Values.imageTag | quote }}
+              {{- else if $.Values.imageSha }}
+              image: {{ printf "%s@%s" $initContainer.image $.Values.imageSha | quote }}
+              {{- else }}
+              image: {{ $initContainer.image | quote }}
+              {{- end }}
               {{- if $initContainer.imagePullPolicy}}
               imagePullPolicy: {{ $initContainer.imagePullPolicy }}
               {{- end }}
@@ -94,14 +102,30 @@ spec:
           containers:
             - name: {{ $cronJob.name }}
         {{- if $cronJob.image }}
-              {{- $tag := default $cronJob.imageTag $.Values.imageTag }}
-              {{- $sha := default $cronJob.imageSha $.Values.imageSha }}
-              image: {{ if $tag }}{{ printf "%s:%s" $cronJob.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $cronJob.image $sha | quote }}{{ else }}{{ $cronJob.image | quote }}{{ end }}
+              {{- if $cronJob.imageTag }}
+              image: {{ printf "%s:%s" $cronJob.image $cronJob.imageTag | quote }}
+              {{- else if $cronJob.imageSha }}
+              image: {{ printf "%s@%s" $cronJob.image $cronJob.imageSha | quote }}
+              {{- else if $.Values.imageTag }}
+              image: {{ printf "%s:%s" $cronJob.image $.Values.imageTag | quote }}
+              {{- else if $.Values.imageSha }}
+              image: {{ printf "%s@%s" $cronJob.image $.Values.imageSha | quote }}
+              {{- else }}
+              image: {{ $cronJob.image | quote }}
+              {{- end }}
         {{- else }}
         {{- with index $.Values.containers 0 }}
-              {{- $tag := default .imageTag $.Values.imageTag }}
-              {{- $sha := default .imageSha $.Values.imageSha }}
-              image: {{ if $tag }}{{ printf "%s:%s" .image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" .image $sha | quote }}{{ else }}{{ .image | quote }}{{ end }}
+              {{- if .imageTag }}
+              image: {{ printf "%s:%s" .image .imageTag | quote }}
+              {{- else if .imageSha }}
+              image: {{ printf "%s@%s" .image .imageSha | quote }}
+              {{- else if $.Values.imageTag }}
+              image: {{ printf "%s:%s" .image $.Values.imageTag | quote }}
+              {{- else if $.Values.imageSha }}
+              image: {{ printf "%s@%s" .image $.Values.imageSha | quote }}
+              {{- else }}
+              image: {{ .image | quote }}
+              {{- end }}
         {{- end }}
         {{- end }}
               command: {{- toYaml $cronJob.command | nindent 16 }}

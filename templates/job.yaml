@@ -42,10 +42,18 @@ spec:
       {{- if $job.initContainers }}
       initContainers:
         {{- range $containerIndex, $initContainer := $job.initContainers }}
-        {{- $tag := default $initContainer.imageTag $.Values.imageTag }}
-        {{- $sha := default $initContainer.imageSha $.Values.imageSha }}
         - name: {{ $initContainer.name }}
-          image: {{ if $tag }}{{ printf "%s:%s" $initContainer.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $initContainer.image $sha | quote }}{{ else }}{{ $initContainer.image | quote }}{{ end }}
+          {{- if $initContainer.imageTag }}
+          image: {{ printf "%s:%s" $initContainer.image $initContainer.imageTag | quote }}
+          {{- else if $initContainer.imageSha }}
+          image: {{ printf "%s@%s" $initContainer.image $initContainer.imageSha | quote }}
+          {{- else if $.Values.imageTag }}
+          image: {{ printf "%s:%s" $initContainer.image $.Values.imageTag | quote }}
+          {{- else if $.Values.imageSha }}
+          image: {{ printf "%s@%s" $initContainer.image $.Values.imageSha | quote }}
+          {{- else }}
+          image: {{ $initContainer.image | quote }}
+          {{- end }}
           {{- if $initContainer.imagePullPolicy}}
           imagePullPolicy: {{ $initContainer.imagePullPolicy }}
           {{- end }}
@@ -91,10 +99,18 @@ spec:
       {{- end }}
       containers:
         {{- range $containerIndex, $jobContainer := $job.containers }}
-        {{- $tag := default $jobContainer.imageTag $.Values.imageTag }}
-        {{- $sha := default $jobContainer.imageSha $.Values.imageSha }}
         - name: {{ $jobContainer.name }}
-          image: {{ if $tag }}{{ printf "%s:%s" $jobContainer.image $tag | quote }}{{ else if $sha }}{{ printf "%s@%s" $jobContainer.image $sha | quote }}{{ else }}{{ $jobContainer.image | quote }}{{ end }}
+          {{- if $jobContainer.imageTag }}
+          image: {{ printf "%s:%s" $jobContainer.image $jobContainer.imageTag | quote }}
+          {{- else if $jobContainer.imageSha }}
+          image: {{ printf "%s@%s" $jobContainer.image $jobContainer.imageSha | quote }}
+          {{- else if $.Values.imageTag }}
+          image: {{ printf "%s:%s" $jobContainer.image $.Values.imageTag | quote }}
+          {{- else if $.Values.imageSha }}
+          image: {{ printf "%s@%s" $jobContainer.image $.Values.imageSha | quote }}
+          {{- else }}
+          image: {{ $jobContainer.image | quote }}
+          {{- end }}
           {{- if $jobContainer.imagePullPolicy}}
           imagePullPolicy: {{ $jobContainer.imagePullPolicy }}
           {{- end }}
