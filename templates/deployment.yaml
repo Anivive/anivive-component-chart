@@ -34,7 +34,11 @@ metadata:
     {{ $annotationName | quote }}: {{ $annotationValue | quote }}
     {{- end }}
 spec:
-  replicas: {{ $.Values.replicas | default 1 }}
+  {{- if hasKey $.Values "replicas" }}
+  replicas: {{ $.Values.replicas }}
+  {{- else }}
+  replicas: 1
+  {{- end }}
   {{- if eq $kind "Deployment" }}
   strategy:
     {{- if $.Values.rollingUpdate }}
