@@ -18,6 +18,16 @@ metadata:
     {{- end }}
 spec:
   schedule: {{ $cronJob.schedule | quote }}
+  {{- if hasKey $cronJob "successfulJobsHistoryLimit" }}
+  successfulJobsHistoryLimit: {{ $cronJob.successfulJobsHistoryLimit | default 3 }}
+  {{- else }}
+  successfulJobsHistoryLimit: 3
+  {{- end }}
+  {{- if hasKey $cronJob "failedJobsHistoryLimit" }}
+  failedJobsHistoryLimit: {{ $cronJob.failedJobsHistoryLimit | default 3 }}
+  {{- else }}
+  failedJobsHistoryLimit: 3
+  {{- end }}
   jobTemplate:
     spec:
       {{- if $cronJob.backoffLimit }}
