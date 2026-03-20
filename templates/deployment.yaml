@@ -190,17 +190,20 @@ spec:
 {{ toYaml $.Values.ephemeralContainers | indent 8 }}
       containers:
         {{- range $containerIndex, $container := $.Values.containers }}
-        {{- $baseImage := trimSuffix ":latest" $container.image }}
-        {{- if $container.imageTag }}
+        {{- $baseImage := $container.image | default $.Values.image | default "" }}
+        {{- $baseImage = trimSuffix ":latest" $baseImage }}
+        {{- if or (contains ":" $baseImage) (contains "@" $baseImage) }}
+        - image: {{ $baseImage | quote }}
+        {{- else if $container.imageTag }}
         - image: {{ printf "%s:%s" $baseImage $container.imageTag | quote }}
         {{- else if $container.imageSha }}
         - image: {{ printf "%s@%s" $baseImage $container.imageSha | quote }}
-        {{- else if and $.Values.imageTag (not (contains ":" $baseImage)) }}
+        {{- else if $.Values.imageTag }}
         - image: {{ printf "%s:%s" $baseImage $.Values.imageTag | quote }}
-        {{- else if and $.Values.imageSha (not (contains ":" $baseImage)) }}
+        {{- else if $.Values.imageSha }}
         - image: {{ printf "%s@%s" $baseImage $.Values.imageSha | quote }}
         {{- else }}
-        - image: {{ $container.image | quote }}
+        - image: {{ $baseImage | quote }}
         {{- end }}
           {{- if $container.name }}
           name: {{ $container.name | quote }}
@@ -345,30 +348,27 @@ spec:
         {{- range $containerIndex, $container := $.Values.initContainers }}
           {{- if $container.image}}
           {{- $baseImage := trimSuffix ":latest" $container.image }}
-          {{- if $container.imageTag }}
+          {{- if or (contains ":" $baseImage) (contains "@" $baseImage) }}
+        - image: {{ $baseImage | quote }}
+          {{- else if $container.imageTag }}
         - image: {{ printf "%s:%s" $baseImage $container.imageTag | quote }}
           {{- else if $container.imageSha }}
         - image: {{ printf "%s@%s" $baseImage $container.imageSha | quote }}
-          {{- else if and $.Values.imageTag (not (contains ":" $baseImage)) }}
+          {{- else if $.Values.imageTag }}
         - image: {{ printf "%s:%s" $baseImage $.Values.imageTag | quote }}
-          {{- else if and $.Values.imageSha (not (contains ":" $baseImage)) }}
+          {{- else if $.Values.imageSha }}
         - image: {{ printf "%s@%s" $baseImage $.Values.imageSha | quote }}
           {{- else }}
-        - image: {{ $container.image | quote }}
+        - image: {{ $baseImage | quote }}
           {{- end }}
           {{- else}}
-          {{- with index $.Values.containers 0 }}
-          {{- $baseImage := trimSuffix ":latest" .image }}
-          {{- if .imageTag }}
-        - image: {{ printf "%s:%s" $baseImage .imageTag | quote }}
-          {{- else if .imageSha }}
-        - image: {{ printf "%s@%s" $baseImage .imageSha | quote }}
-          {{- else if and $.Values.imageTag (not (contains ":" $baseImage)) }}
+          {{- $baseImage := $.Values.image | default "" }}
+          {{- if $.Values.imageTag }}
         - image: {{ printf "%s:%s" $baseImage $.Values.imageTag | quote }}
-          {{- else if and $.Values.imageSha (not (contains ":" $baseImage)) }}
+          {{- else if $.Values.imageSha }}
         - image: {{ printf "%s@%s" $baseImage $.Values.imageSha | quote }}
           {{- else }}
-        - image: {{ .image | quote }}
+        - image: {{ $baseImage | quote }}
           {{- end }}
           {{- end }}
           {{- end}}
