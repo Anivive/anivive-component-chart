@@ -55,16 +55,20 @@ spec:
           initContainers:
             {{- range $containerIndex, $initContainer := $cronJob.initContainers }}
             - name: {{ $initContainer.name }}
-              {{- if $initContainer.imageTag }}
-              image: {{ printf "%s:%s" $initContainer.image $initContainer.imageTag | quote }}
+              {{- $baseImage := $initContainer.image | default $.Values.image | default "" }}
+              {{- $baseImage = trimSuffix ":latest" $baseImage }}
+              {{- if or (contains ":" $baseImage) (contains "@" $baseImage) }}
+              image: {{ $baseImage | quote }}
+              {{- else if $initContainer.imageTag }}
+              image: {{ printf "%s:%s" $baseImage $initContainer.imageTag | quote }}
               {{- else if $initContainer.imageSha }}
-              image: {{ printf "%s@%s" $initContainer.image $initContainer.imageSha | quote }}
+              image: {{ printf "%s@%s" $baseImage $initContainer.imageSha | quote }}
               {{- else if $.Values.imageTag }}
-              image: {{ printf "%s:%s" $initContainer.image $.Values.imageTag | quote }}
+              image: {{ printf "%s:%s" $baseImage $.Values.imageTag | quote }}
               {{- else if $.Values.imageSha }}
-              image: {{ printf "%s@%s" $initContainer.image $.Values.imageSha | quote }}
+              image: {{ printf "%s@%s" $baseImage $.Values.imageSha | quote }}
               {{- else }}
-              image: {{ $initContainer.image | quote }}
+              image: {{ $baseImage | quote }}
               {{- end }}
               {{- if $initContainer.imagePullPolicy}}
               imagePullPolicy: {{ $initContainer.imagePullPolicy }}
@@ -111,32 +115,20 @@ spec:
           {{- end }}
           containers:
             - name: {{ $cronJob.name }}
-        {{- if $cronJob.image }}
-              {{- if $cronJob.imageTag }}
-              image: {{ printf "%s:%s" $cronJob.image $cronJob.imageTag | quote }}
-              {{- else if $cronJob.imageSha }}
-              image: {{ printf "%s@%s" $cronJob.image $cronJob.imageSha | quote }}
-              {{- else if $.Values.imageTag }}
-              image: {{ printf "%s:%s" $cronJob.image $.Values.imageTag | quote }}
-              {{- else if $.Values.imageSha }}
-              image: {{ printf "%s@%s" $cronJob.image $.Values.imageSha | quote }}
-              {{- else }}
-              image: {{ $cronJob.image | quote }}
-              {{- end }}
+        {{- $baseImage := $cronJob.image | default $.Values.image | default "" }}
+        {{- $baseImage = trimSuffix ":latest" $baseImage }}
+        {{- if or (contains ":" $baseImage) (contains "@" $baseImage) }}
+              image: {{ $baseImage | quote }}
+        {{- else if $cronJob.imageTag }}
+              image: {{ printf "%s:%s" $baseImage $cronJob.imageTag | quote }}
+        {{- else if $cronJob.imageSha }}
+              image: {{ printf "%s@%s" $baseImage $cronJob.imageSha | quote }}
+        {{- else if $.Values.imageTag }}
+              image: {{ printf "%s:%s" $baseImage $.Values.imageTag | quote }}
+        {{- else if $.Values.imageSha }}
+              image: {{ printf "%s@%s" $baseImage $.Values.imageSha | quote }}
         {{- else }}
-        {{- with index $.Values.containers 0 }}
-              {{- if .imageTag }}
-              image: {{ printf "%s:%s" .image .imageTag | quote }}
-              {{- else if .imageSha }}
-              image: {{ printf "%s@%s" .image .imageSha | quote }}
-              {{- else if $.Values.imageTag }}
-              image: {{ printf "%s:%s" .image $.Values.imageTag | quote }}
-              {{- else if $.Values.imageSha }}
-              image: {{ printf "%s@%s" .image $.Values.imageSha | quote }}
-              {{- else }}
-              image: {{ .image | quote }}
-              {{- end }}
-        {{- end }}
+              image: {{ $baseImage | quote }}
         {{- end }}
               command: {{- toYaml $cronJob.command | nindent 16 }}
               args: {{- toYaml $cronJob.args | nindent 16 }}
