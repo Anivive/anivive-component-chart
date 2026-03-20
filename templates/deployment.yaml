@@ -371,7 +371,6 @@ spec:
         - image: {{ $baseImage | quote }}
           {{- end }}
           {{- end }}
-          {{- end}}
           {{- if $container.name }}
           name: {{ $container.name | quote }}
           {{- else }}
