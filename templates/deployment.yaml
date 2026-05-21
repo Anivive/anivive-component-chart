@@ -248,6 +248,24 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.labels['app.kubernetes.io/version']
+            {{- if and $container.resources (or (eq (first $container.command) "node") (hasPrefix "ms-" $container.name)) }}
+              {{- if $container.resources.limits }}
+                {{- if $container.resources.limits.memory }}
+                  {{- $mem := $container.resources.limits.memory }}
+                  {{- $memMb := 0 }}
+                  {{- if hasSuffix "Mi" $mem }}
+                    {{- $memMb = trimSuffix "Mi" $mem | int }}
+                  {{- else if hasSuffix "Gi" $mem }}
+                    {{- $memMb = mul (trimSuffix "Gi" $mem | int) 1024 }}
+                  {{- end }}
+                  {{- if gt $memMb 0 }}
+                    {{- $heapSize := div (mul $memMb 75) 100 }}
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size={{ $heapSize }}"
+                  {{- end }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
           {{- if $container.env }}
 {{ toYaml $container.env | indent 12 }}
           {{- end }}

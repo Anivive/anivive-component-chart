@@ -1,4 +1,5 @@
 apiVersion: v2
 name: anivive-service
 description: A general purpose helm chart for deploying components of an application
-version: 2.0.2
+version: 2.0.3
+
