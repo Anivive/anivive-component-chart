@@ -31,9 +31,9 @@
   {{- end }}
 {{- end }}
 
-{{- if $.Values.ingress.grouped }}
+{{- if or (not (hasKey $.Values.ingress "grouped")) $.Values.ingress.grouped }}
 {{- /* ------------------------------------------------------------------ */}}
-{{- /* Grouped mode (ingress.grouped: true): single Ingress for all rules  */}}
+{{- /* Grouped mode (default): single Ingress for all rules                */}}
 {{- /* ------------------------------------------------------------------ */}}
 apiVersion: {{ $apiVersion }}
 kind: Ingress
@@ -135,8 +135,8 @@ spec:
 
 {{- else }}
 {{- /* ------------------------------------------------------------------ */}}
-{{- /* Per-rule mode (default): one Ingress per rule                       */}}
-{{- /* Set ingress.grouped: true to use a single shared Ingress instead.   */}}
+{{- /* Per-rule mode: one Ingress per rule                                 */}}
+{{- /* Set ingress.grouped: false to disable single shared Ingress.        */}}
 {{- /* ------------------------------------------------------------------ */}}
 {{- range $ruleIndex, $rule := $.Values.ingress.rules }}
 ---
