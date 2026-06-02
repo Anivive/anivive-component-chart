@@ -1,4 +1,4 @@
-{{- if $.Values.ingress }}
+{{- if and $.Values.ingress (or $.Values.ingress.rules $.Values.ingress.defaultBackend) }}
 
 {{- /* ------------------------------------------------------------------ */}}
 {{- /* Shared variables                                                     */}}
