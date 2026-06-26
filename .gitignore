@@ -1,3 +1,7 @@
 /test
 /.idea
 /.deploy
+# misc
+.DS_Store
+*.pem
+.idea

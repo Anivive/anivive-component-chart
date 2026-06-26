@@ -21,6 +21,29 @@ ingress:
   annotations: {}
   rules: []
 
+httproute:
+  enabled: false
+  # name: ""
+  # namespace: ""
+  labels: {}
+  annotations: {}
+  gatewayName: "global-staging-gateway"
+  gatewayNamespace: "kube-system"
+  # parentRefs:
+  #   - name: global-staging-gateway
+  #     namespace: kube-system
+  hostnames: []
+  # - "*.staging.anivive.com"
+  rules: []
+  # - matches:
+  #   - path:
+  #       type: PathPrefix
+  #       value: /
+  #   backendRefs:
+  #   - name: service-name
+  #     port: 80
+
+
 # Define persistent volumes here
 # Then mount them in containers above
 volumes: []

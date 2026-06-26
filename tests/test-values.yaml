@@ -12,6 +12,33 @@ ingress:
   rules:
   - host: some-hostname.tld
     pathType: Prefix
+httproute:
+  enabled: true
+  gatewayName: "custom-gateway"
+  gatewayNamespace: "custom-namespace"
+  hostnames:
+  - "test.staging.anivive.com"
+  rules:
+  # Rule 1: No backendRefs specified (fully default to service.name/Release.Name and service port)
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /default-backend
+  # Rule 2: Empty backendRef object (fully default to service.name/Release.Name and service port)
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /empty-backend
+    backendRefs:
+    - {}
+  # Rule 3: Explicit custom backend name and port (custom values preserved)
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /custom-backend
+    backendRefs:
+    - name: custom-service
+      port: 8080
 volumes:
 - name: test-data
   size: "2Gi"

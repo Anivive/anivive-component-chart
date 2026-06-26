@@ -1,0 +1,93 @@
+{{- if .Values.httproute }}
+{{- if .Values.httproute.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Values.httproute.name | default .Values.service.name | default .Release.Name | quote }}
+  {{- if .Values.httproute.namespace }}
+  namespace: {{ .Values.httproute.namespace | quote }}
+  {{- else }}
+  namespace: {{ .Release.Namespace | quote }}
+  {{- end }}
+  labels:
+    "app.kubernetes.io/component": {{ .Release.Name | quote }}
+    "app.kubernetes.io/name": {{ .Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ .Release.Service | quote }}
+    {{- range $labelName, $labelValue := .Values.httproute.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  annotations:
+    "helm.sh/chart": "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    {{- range $annotationName, $annotationValue := .Values.httproute.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+spec:
+  parentRefs:
+  {{- if .Values.httproute.parentRefs }}
+    {{- toYaml .Values.httproute.parentRefs | nindent 4 }}
+  {{- else }}
+    - name: {{ .Values.httproute.gatewayName | default "global-staging-gateway" | quote }}
+      namespace: {{ .Values.httproute.gatewayNamespace | default "kube-system" | quote }}
+  {{- end }}
+  {{- if .Values.httproute.hostnames }}
+  hostnames:
+    {{- toYaml .Values.httproute.hostnames | nindent 4 }}
+  {{- end }}
+  {{- if .Values.httproute.rules }}
+  rules:
+    {{- range $ruleIndex, $rule := .Values.httproute.rules }}
+    - matches:
+        {{- toYaml $rule.matches | nindent 6 }}
+      {{- if $rule.filters }}
+      filters:
+        {{- toYaml $rule.filters | nindent 6 }}
+      {{- end }}
+      backendRefs:
+      {{- if $rule.backendRefs }}
+        {{- range $backendRefIndex, $backendRef := $rule.backendRefs }}
+        {{- $backendName := $backendRef.name }}
+        {{- if not $backendName }}
+          {{- if $.Values.service.name }}
+            {{- $backendName = $.Values.service.name }}
+          {{- else }}
+            {{- $backendName = $.Release.Name }}
+          {{- end }}
+        {{- end }}
+        {{- $backendPort := $backendRef.port }}
+        {{- if not $backendPort }}
+          {{- if and $.Values.service $.Values.service.ports }}
+            {{- $backendPort = (index $.Values.service.ports 0).port }}
+          {{- else }}
+            {{- $backendPort = 80 }}
+          {{- end }}
+        {{- end }}
+        - name: {{ $backendName | quote }}
+          port: {{ $backendPort }}
+          {{- if $backendRef.group }}
+          group: {{ $backendRef.group | quote }}
+          {{- end }}
+          {{- if $backendRef.kind }}
+          kind: {{ $backendRef.kind | quote }}
+          {{- end }}
+          {{- if $backendRef.weight }}
+          weight: {{ $backendRef.weight }}
+          {{- end }}
+        {{- end }}
+      {{- else }}
+        {{- $backendName := "" }}
+        {{- if $.Values.service.name }}
+          {{- $backendName = $.Values.service.name }}
+        {{- else }}
+          {{- $backendName = $.Release.Name }}
+        {{- end }}
+        {{- $backendPort := 80 }}
+        {{- if and $.Values.service $.Values.service.ports }}
+          {{- $backendPort = (index $.Values.service.ports 0).port }}
+        {{- end }}
+        - name: {{ $backendName | quote }}
+          port: {{ $backendPort }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
