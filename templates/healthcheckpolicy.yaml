@@ -1,0 +1,106 @@
+{{- if and .Values.httproute .Values.httproute.enabled }}
+{{- $requestPath := "/" }}
+{{- $port := 80 }}
+{{- $checkIntervalSec := 10 }}
+{{- $timeoutSec := 5 }}
+{{- $healthyThreshold := 1 }}
+{{- $unhealthyThreshold := 3 }}
+
+{{- /* 1. Default port from the first service port if defined */ -}}
+{{- if and .Values.service .Values.service.ports }}
+  {{- $port = (index .Values.service.ports 0).port }}
+{{- end }}
+
+{{- /* 2. Attempt to extract port and path from the first container's readinessProbe */ -}}
+{{- if .Values.containers }}
+  {{- $firstContainer := index .Values.containers 0 }}
+  {{- if and $firstContainer.readinessProbe $firstContainer.readinessProbe.httpGet }}
+    {{- if $firstContainer.readinessProbe.httpGet.path }}
+      {{- $requestPath = $firstContainer.readinessProbe.httpGet.path }}
+    {{- end }}
+    {{- if $firstContainer.readinessProbe.httpGet.port }}
+      {{- $probePort := $firstContainer.readinessProbe.httpGet.port }}
+      {{- $matchedPort := "" }}
+      {{- if $.Values.service.ports }}
+        {{- range $.Values.service.ports }}
+          {{- if or (eq (toString .port) (toString $probePort)) (eq (toString .containerPort) (toString $probePort)) (and .name (eq .name (toString $probePort))) }}
+            {{- $matchedPort = .port }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if $matchedPort }}
+        {{- $port = $matchedPort }}
+      {{- else }}
+        {{- $port = $probePort }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+{{- /* 3. Override with explicitly defined healthCheck settings from httproute */ -}}
+{{- if .Values.httproute.healthCheck }}
+  {{- if .Values.httproute.healthCheck.requestPath }}
+    {{- $requestPath = .Values.httproute.healthCheck.requestPath }}
+  {{- end }}
+  {{- if .Values.httproute.healthCheck.port }}
+    {{- $port = .Values.httproute.healthCheck.port }}
+  {{- end }}
+  {{- if hasKey .Values.httproute.healthCheck "checkIntervalSec" }}
+    {{- $checkIntervalSec = .Values.httproute.healthCheck.checkIntervalSec }}
+  {{- end }}
+  {{- if hasKey .Values.httproute.healthCheck "timeoutSec" }}
+    {{- $timeoutSec = .Values.httproute.healthCheck.timeoutSec }}
+  {{- end }}
+  {{- if hasKey .Values.httproute.healthCheck "healthyThreshold" }}
+    {{- $healthyThreshold = .Values.httproute.healthCheck.healthyThreshold }}
+  {{- end }}
+  {{- if hasKey .Values.httproute.healthCheck "unhealthyThreshold" }}
+    {{- $unhealthyThreshold = .Values.httproute.healthCheck.unhealthyThreshold }}
+  {{- end }}
+{{- end }}
+
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: {{ printf "%s-hc" (.Values.service.name | default .Release.Name) | quote }}
+  {{- if .Values.httproute.namespace }}
+  namespace: {{ .Values.httproute.namespace | quote }}
+  {{- else }}
+  namespace: {{ .Release.Namespace | quote }}
+  {{- end }}
+  labels:
+    "app.kubernetes.io/component": {{ .Release.Name | quote }}
+    "app.kubernetes.io/name": {{ .Release.Name | quote }}
+    "app.kubernetes.io/managed-by": {{ .Release.Service | quote }}
+    {{- range $labelName, $labelValue := .Values.httproute.labels }}
+    {{ $labelName | quote }}: {{ $labelValue | quote }}
+    {{- end }}
+  annotations:
+    "helm.sh/chart": "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    {{- range $annotationName, $annotationValue := .Values.httproute.annotations }}
+    {{ $annotationName | quote }}: {{ $annotationValue | quote }}
+    {{- end }}
+spec:
+  targetRef:
+    group: ""
+    kind: Service
+    name: {{ .Values.service.name | default .Release.Name | quote }}
+  default:
+    config:
+      type: HTTP
+      httpHealthCheck:
+        port: {{ $port }}
+        requestPath: {{ $requestPath | quote }}
+    {{- if $checkIntervalSec }}
+    checkIntervalSec: {{ $checkIntervalSec }}
+    {{- end }}
+    {{- if $timeoutSec }}
+    timeoutSec: {{ $timeoutSec }}
+    {{- end }}
+    {{- if $healthyThreshold }}
+    healthyThreshold: {{ $healthyThreshold }}
+    {{- end }}
+    {{- if $unhealthyThreshold }}
+    unhealthyThreshold: {{ $unhealthyThreshold }}
+    {{- end }}
+{{- end }}

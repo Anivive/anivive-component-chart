@@ -42,6 +42,13 @@ httproute:
   #   backendRefs:
   #   - name: service-name
   #     port: 80
+  # healthCheck:
+  #   requestPath: ""
+  #   port: 0
+  #   checkIntervalSec: 10
+  #   timeoutSec: 5
+  #   healthyThreshold: 1
+  #   unhealthyThreshold: 3
 
 
 # Define persistent volumes here
