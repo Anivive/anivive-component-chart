@@ -261,7 +261,9 @@ spec:
                   {{- if gt $memMb 0 }}
                     {{- $heapSize := div (mul $memMb 75) 100 }}
             - name: NODE_OPTIONS
-              value: "--max-old-space-size={{ $heapSize }}"
+              value: "--max-old-space-size={{ $heapSize }} --max-semi-space-size=4"
+            - name: MALLOC_ARENA_MAX
+              value: '2'
                   {{- end }}
                 {{- end }}
               {{- end }}
