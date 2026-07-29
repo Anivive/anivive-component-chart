@@ -1,10 +1,16 @@
 {{- if .Values.initJobs }}
 {{- range $initJobs, $job := $.Values.initJobs }}
+{{- $jobName := $job.name }}
+{{- if not (hasPrefix $.Release.Name $job.name) }}
+  {{- $jobName = printf "%s-%s" $.Release.Name $job.name }}
+{{- end }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ $.Release.Name }}"
+  name: "{{ $jobName }}"
   labels:
+    app.kubernetes.io/name: {{ $jobName | quote }}
+    app.kubernetes.io/component: {{ $.Release.Name | quote }}
     app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
     app.kubernetes.io/instance: {{ $.Release.Name | quote }}
     helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
@@ -19,9 +25,9 @@ metadata:
 spec:
   template:
     metadata:
-      name: "{{ $.Release.Name }}-{{ $job.name }}"
+      name: "{{ $jobName }}"
       labels:
-        app.kubernetes.io/name: {{ $.Release.Name | quote }}
+        app.kubernetes.io/name: {{ $jobName | quote }}
         app.kubernetes.io/component: {{ $.Release.Name | quote }}
         app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
         app.kubernetes.io/instance: {{$.Release.Name | quote }}

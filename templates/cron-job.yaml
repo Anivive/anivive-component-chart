@@ -1,11 +1,15 @@
 {{- if .Values.cronJobs}}
   {{- range $cronJobsIndex, $cronJob := $.Values.cronJobs }}
+  {{- $cronJobName := $cronJob.name }}
+  {{- if not (hasPrefix $.Release.Name $cronJob.name) }}
+    {{- $cronJobName = printf "%s-%s" $.Release.Name $cronJob.name }}
+  {{- end }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: "{{ $cronJob.name }}"
+  name: "{{ $cronJobName }}"
   labels:
-    "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+    "app.kubernetes.io/name": {{ $cronJobName | quote }}
     "app.kubernetes.io/component": {{ $.Release.Name | quote }}
     "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
     {{- range $labelName, $labelValue := $cronJob.labels }}
@@ -35,9 +39,9 @@ spec:
       {{- end }}
       template:
         metadata:
-          name: "{{ $cronJob.name }}"
+          name: "{{ $cronJobName }}"
           labels:
-            "app.kubernetes.io/name": {{ $.Release.Name | quote }}
+            "app.kubernetes.io/name": {{ $cronJobName | quote }}
             "app.kubernetes.io/component": {{ $.Release.Name | quote }}
             "app.kubernetes.io/managed-by": {{ $.Release.Service | quote }}
             {{- range $labelName, $labelValue := $cronJob.labels }}
