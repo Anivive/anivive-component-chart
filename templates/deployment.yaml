@@ -248,7 +248,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.labels['app.kubernetes.io/version']
-            {{- if and $container.resources (or (eq (first $container.command) "node") (hasPrefix "ms-" $container.name)) }}
+            {{- if and $container.resources (or (and $container.command (eq (first $container.command) "node")) (hasPrefix "ms-" $container.name)) }}
               {{- if $container.resources.limits }}
                 {{- if $container.resources.limits.memory }}
                   {{- $mem := $container.resources.limits.memory }}
