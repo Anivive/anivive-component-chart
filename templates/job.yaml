@@ -13,9 +13,8 @@ metadata:
     app.kubernetes.io/component: {{ $.Release.Name | quote }}
     app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
     app.kubernetes.io/instance: {{ $.Release.Name | quote }}
+    app.kubernetes.io/version: "{{ $.Values.version | default $.Values.imageTag }}"
     helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
-    "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
-    "tags.datadoghq.com/version": "{{ $.Values.Version }}"
   annotations:
     {{- if $job.annotations }}
     {{- range $key, $value := $job.annotations }}
@@ -31,9 +30,8 @@ spec:
         app.kubernetes.io/component: {{ $.Release.Name | quote }}
         app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
         app.kubernetes.io/instance: {{$.Release.Name | quote }}
+        app.kubernetes.io/version: "{{ $.Values.version | default $.Values.imageTag }}"
         helm.sh/chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
-        "tags.datadoghq.com/service": {{ $.Release.Name | quote }}
-        "tags.datadoghq.com/version": "{{ $.Values.Version }}"
     spec:
       shareProcessNamespace: {{ $job.shareProcessNamespace | default false }}
       serviceAccountName: {{ if $.Values.serviceAccount }}{{ if kindIs "map" $.Values.serviceAccount }}{{ $.Values.serviceAccount.name }}{{ else }}{{ $.Values.serviceAccount }}{{ end }}{{ else }}default{{ end }}
@@ -138,14 +136,14 @@ spec:
           args: {{- toYaml $jobContainer.args | nindent 12 }}
           {{- end }}
           env:
-            - name: DD_SERVICE
+            - name: SERVICE
               valueFrom:
                 fieldRef:
-                  fieldPath: metadata.labels['tags.datadoghq.com/service']
-            - name: DD_VERSION
+                  fieldPath: metadata.labels['app.kubernetes.io/component']
+            - name: VERSION
               valueFrom:
                 fieldRef:
-                  fieldPath: metadata.labels['tags.datadoghq.com/version']
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
             {{- if $jobContainer.env }}
             {{- toYaml $jobContainer.env | nindent 12 }}
             {{- end }}
