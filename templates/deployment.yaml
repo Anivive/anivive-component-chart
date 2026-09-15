@@ -259,7 +259,9 @@ spec:
                   {{- if gt $memMb 0 }}
                     {{- $heapSize := div (mul $memMb 75) 100 }}
             - name: NODE_OPTIONS
-              value: "--max-old-space-size={{ $heapSize }} --max-semi-space-size=4"
+              value: "--max-old-space-size={{ $heapSize }} --max-semi-space-size=4 --v8-pool-size=2 --no-warnings"
+            - name: UV_THREADPOOL_SIZE
+              value: "2"
                   {{- end }}
                 {{- end }}
               {{- end }}
