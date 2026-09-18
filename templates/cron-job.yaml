@@ -83,16 +83,16 @@ spec:
               workingDir: {{ $initContainer.workingDir }}
               {{- end }}
               {{- if $initContainer.command }}
-              command: {{- toYaml $initContainer.command | nindent 14 }}
+              command: {{- toYaml $initContainer.command | nindent 16 }}
               {{- end }}
               {{- if $initContainer.args }}
-              args: {{- toYaml $initContainer.args | nindent 14 }}
+              args: {{- toYaml $initContainer.args | nindent 16 }}
               {{- end }}
               {{- if $initContainer.env }}
-              env: {{- toYaml $initContainer.env | nindent 14 }}
+              env: {{- toYaml $initContainer.env | nindent 16 }}
               {{- end }}
               {{- if $initContainer.envFrom }}
-              envFrom: {{- toYaml $initContainer.envFrom | nindent 14 }}
+              envFrom: {{- toYaml $initContainer.envFrom | nindent 16 }}
               {{- end }}
               {{- if $initContainer.volumeMounts }}
               volumeMounts:
@@ -106,7 +106,7 @@ spec:
                 {{- end }}
               {{- end }}
               {{- if $initContainer.resources }}
-              resources: {{- toYaml $initContainer.resources | nindent 14 }}
+              resources: {{- toYaml $initContainer.resources | nindent 16 }}
               {{- else }}
               resources:
                 limits:
