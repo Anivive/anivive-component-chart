@@ -110,11 +110,11 @@ spec:
               {{- else }}
               resources:
                 limits:
-                  cpu: 400m
-                  memory: 250Mi
+                  cpu: 500m
+                  memory: 256Mi
                 requests:
-                  cpu: 10m
-                  memory: 50Mi
+                  cpu: 50m
+                  memory: 128Mi
               {{- end }}
             {{- end }}
           {{- end }}
@@ -202,10 +202,10 @@ spec:
                 {{- if $cronJob.resources.limits }}
                 requests:
                   {{- if $cronJob.resources.limits.cpu }}
-                  cpu: "10m"
+                  cpu: "50m"
                   {{- end }}
                   {{- if $cronJob.resources.limits.memory }}
-                  memory: "50mi"
+                  memory: "128Mi"
                   {{- end }}
                   {{- if $cronJob.resources.limits.ephemeralStorage }}
                   ephemeral-storage: "0"
@@ -215,11 +215,11 @@ spec:
               {{else}}
               resources:
                 limits:
-                  cpu: 400m
-                  memory: 250Mi
+                  cpu: 500m
+                  memory: 256Mi
                 requests:
-                  cpu: 10m
-                  memory: 50Mi
+                  cpu: 50m
+                  memory: 128Mi
               {{- end }}
           volumes:
             {{- range $volumeIndex, $volume := $.Values.volumes }}
