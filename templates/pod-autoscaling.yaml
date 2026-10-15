@@ -31,6 +31,18 @@ metadata:
     {{ $annotationName | quote }}: {{ $annotationValue | quote }}
     {{- end }}
 spec:
+  {{- if $.Values.autoScaling.horizontal.behavior }}
+  behavior:
+{{ toYaml $.Values.autoScaling.horizontal.behavior | indent 4 }}
+  {{- else }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+  {{- end }}
   scaleTargetRef:
     apiVersion: apps/v1
     kind: {{ $kind }}

@@ -181,8 +181,10 @@ spec:
       {{- end }}
       {{- if hasKey $.Values "terminationGracePeriodSeconds" }}
       terminationGracePeriodSeconds: {{ $.Values.terminationGracePeriodSeconds }}
+      {{- else if and $.Values.httproute $.Values.httproute.enabled }}
+      terminationGracePeriodSeconds: 45
       {{- else }}
-      terminationGracePeriodSeconds: 5
+      terminationGracePeriodSeconds: 30
       {{- end }}
       ephemeralContainers:
 {{ toYaml $.Values.ephemeralContainers | indent 8 }}
@@ -283,8 +285,20 @@ spec:
 {{ toYaml $container.envFrom | indent 12 }}
           securityContext:
 {{ toYaml $container.securityContext | indent 12 }}
+          {{- if $container.lifecycle }}
           lifecycle:
 {{ toYaml $container.lifecycle | indent 12 }}
+          {{- else if and $.Values.httproute $.Values.httproute.enabled }}
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 25
+          {{- else }}
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5
+          {{- end }}
           livenessProbe:
 {{ toYaml $container.livenessProbe | indent 12 }}
           readinessProbe:
