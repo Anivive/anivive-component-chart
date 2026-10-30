@@ -123,8 +123,38 @@ spec:
 {{ toYaml $.Values.readinessGates | indent 8 }}
       securityContext:
 {{ toYaml $.Values.securityContext | indent 8 }}
+      {{- $hasNameSpread := false }}
+      {{- $hasManagedBySpread := false }}
+      {{- range $.Values.topologySpreadConstraints }}
+        {{- if and .labelSelector .labelSelector.matchLabels }}
+          {{- if or (hasKey .labelSelector.matchLabels "app.kubernetes.io/name") (hasKey .labelSelector.matchLabels "app.kubernetes.io/component") (hasKey .labelSelector.matchLabels "app") }}
+            {{- $hasNameSpread = true }}
+          {{- end }}
+          {{- if hasKey .labelSelector.matchLabels "app.kubernetes.io/managed-by" }}
+            {{- $hasManagedBySpread = true }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
       topologySpreadConstraints:
+        {{- if $.Values.topologySpreadConstraints }}
 {{ toYaml $.Values.topologySpreadConstraints | indent 8 }}
+        {{- end }}
+        {{- if not $hasNameSpread }}
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ $.Release.Name | quote }}
+        {{- end }}
+        {{- if not $hasManagedBySpread }}
+        - maxSkew: 2
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/managed-by: {{ $.Release.Service | quote }}
+        {{- end }}
       {{- if hasKey $.Values "activeDeadlineSeconds" }}
       activeDeadlineSeconds: {{ $.Values.activeDeadlineSeconds }}
       {{- end }}
